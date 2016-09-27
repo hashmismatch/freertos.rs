@@ -2,6 +2,10 @@
 name = "freertos_rs"
 version = "0.1.0"
 authors = ["Rudi Benkovic <rudi.benkovic@gmail.com>"]
+repository = "https://github.com/hashmismatch/freertos.rs"
+description = """
+Rust interface for the FreeRTOS embedded operating system.
+"""
 
 [lib]
 name = "freertos_rs"
