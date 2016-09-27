@@ -1,0 +1,15 @@
+[package]
+name = "qemu_stm32_tests"
+version = "0.1.0"
+authors = ["Rudi Benkovic <rudi.benkovic@gmail.com>"]
+
+[lib]
+name = "qemu_stm32_tests"
+crate-type = ["lib"]
+
+[dependencies]
+freertos_rs = { path = "../" }
+
+[dependencies.lazy_static]
+version = "0.2.1"
+features = ["nightly", "spin_no_std"]

@@ -1,0 +1,8 @@
+[package]
+name = "qemu_runner"
+version = "0.1.0"
+authors = ["Rudi Benkovic <rudi.benkovic@gmail.com>"]
+#build = "build.rs"
+
+[dependencies]
+quale = "1.0.0"
