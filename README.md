@@ -9,7 +9,7 @@ This library uses a C shim to communicate with FreeRTOS's APIs. Dynamic memory a
 
 [Documentation](https://docs.rs/freertos_rs)
 
-[Introduction article](...)
+[Introduction article](http://hashmismatch.net/freertos-meets-rust/)
 
 ## Usage
 
