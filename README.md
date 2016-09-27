@@ -1,4 +1,4 @@
-# freertos-rs
+# freertos.rs
 
 This library is a Rust interface for the [FreeRTOS](http://www.freertos.org/) API. Currently, it requires nightly Rust.
 
