@@ -1,3 +1,5 @@
 target
 Cargo.lock
 /qemu_runner/arm_tests
+/*.sublime-workspace
+/freertos_rs.sublime-project
