@@ -7,7 +7,7 @@ This library uses a C shim to communicate with FreeRTOS's APIs. Dynamic memory a
 
 [![Build Status](https://travis-ci.org/hashmismatch/freertos.rs.svg?branch=master)](https://travis-ci.org/hashmismatch/freertos.rs)
 
-[Documentation](https://docs.rs/freertos_rs)
+[![Documentation](https://docs.rs/freertos_rs/badge.svg)](https://docs.rs/freertos_rs)
 
 [Introduction article](http://hashmismatch.net/freertos-meets-rust/)
 
