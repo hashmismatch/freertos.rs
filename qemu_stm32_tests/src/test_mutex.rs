@@ -34,25 +34,25 @@ pub extern fn test_mutex() -> i8 {
 
 				for _ in 0..n {
 					let (next_mutex_idx, delay_ms) = {
-						let mut rnd = rnd.lock(Duration::Infinite).unwrap();
+						let mut rnd = rnd.lock(Duration::infinite()).unwrap();
 						(rnd.next_num(m) as usize, rnd.next_num(5) as u32)
 					};
 
 					//debug_print(&format!("Next mutex {}", next_mutex_idx));
 
 					let mutex = {
-						let m = mutexes.lock(Duration::Infinite).unwrap();
+						let m = mutexes.lock(Duration::infinite()).unwrap();
 						m[next_mutex_idx].clone()
 					};
 
 					{
-						let mut m = mutex.lock(Duration::Infinite).unwrap();
+						let mut m = mutex.lock(Duration::infinite()).unwrap();
 						*m += 1;
 						CurrentTask::delay(Duration::ms(delay_ms));
 					}
 
 					{
-						let mut total = total.lock(Duration::Infinite).unwrap();
+						let mut total = total.lock(Duration::infinite()).unwrap();
 						*total += 1;
 					}
 				}
@@ -67,10 +67,10 @@ pub extern fn test_mutex() -> i8 {
 		let main_task = Task::current().unwrap();
 		let mut finished_tasks = 0;
 		loop {			
-			let nv = main_task.take_notification(true, Duration::Infinite);
+			let nv = main_task.take_notification(true, Duration::infinite());
 			finished_tasks += nv;
 			if finished_tasks == t {
-				let total = total.lock(Duration::Infinite).unwrap();
+				let total = total.lock(Duration::infinite()).unwrap();
 				assert_eq!(*total, n * t);
 
 				exit_test(0);

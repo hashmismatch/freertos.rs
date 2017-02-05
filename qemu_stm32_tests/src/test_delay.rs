@@ -6,7 +6,7 @@ use freertos_rs::*;
 #[no_mangle]
 pub extern fn test_delay() -> i8 {
 	let main_task = Task::new().name("main").start(|| {
-		let start = CurrentTask::get_tick_count();
+		let start = FreeRtosUtils::get_tick_count();
 
 		let counter = Arc::new(Mutex::new(0).unwrap());
 
@@ -18,7 +18,7 @@ pub extern fn test_delay() -> i8 {
 
 					// increase the counter and immediately release it
 					{
-						let mut counter = counter.lock(Duration::Infinite).unwrap();
+						let mut counter = counter.lock(Duration::infinite()).unwrap();
 						*counter += 1;
 					}
 				}
@@ -28,14 +28,14 @@ pub extern fn test_delay() -> i8 {
 		CurrentTask::delay(Duration::ms(550));
 
 		{
-			let counter = counter.lock(Duration::Infinite).unwrap();
+			let counter = counter.lock(Duration::infinite()).unwrap();
 			assert_eq!(*counter, 5);
 		}
 
 		CurrentTask::delay(Duration::ms(500));
 
 		{
-			let counter = counter.lock(Duration::Infinite).unwrap();
+			let counter = counter.lock(Duration::infinite()).unwrap();
 			assert_eq!(*counter, 10);
 		}
 

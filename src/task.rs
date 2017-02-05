@@ -12,14 +12,9 @@ pub struct Task {
     task_handle: FreeRtosTaskHandle,
 }
 
-/// Task's execution priority
+/// Task's execution priority. Low priority numbers denote low priority tasks.
 #[derive(Debug, Copy, Clone)]
-pub enum TaskPriority {
-    BelowNormal,
-    Normal,
-    AboveNormal,
-    High,
-}
+pub struct TaskPriority(pub u8);
 
 /// Notification to be sent to a task.
 #[derive(Debug, Copy, Clone)]
@@ -52,12 +47,7 @@ impl TaskNotification {
 
 impl TaskPriority {
     fn to_freertos(&self) -> FreeRtosUBaseType {
-        match *self {
-            TaskPriority::BelowNormal => 6,
-            TaskPriority::Normal => 5,
-            TaskPriority::AboveNormal => 4,
-            TaskPriority::High => 3,
-        }
+        self.0 as FreeRtosUBaseType
     }
 }
 
@@ -111,7 +101,7 @@ impl Task {
         TaskBuilder {
             task_name: "rust_task".into(),
             task_stack_size: 1024,
-            task_priority: TaskPriority::Normal,
+            task_priority: TaskPriority(1),
         }
     }
 
@@ -263,14 +253,21 @@ impl Task {
 /// Helper methods to be performed on the task that is currently executing.
 pub struct CurrentTask;
 impl CurrentTask {
-    pub fn get_tick_count() -> FreeRtosTickType {
-        unsafe { freertos_rs_xTaskGetTickCount() }
-    }
-
     /// Delay the execution of the current task.
     pub fn delay(delay: Duration) {
         unsafe {
             freertos_rs_vTaskDelay(delay.to_ticks());
         }
+    }
+}
+
+pub struct FreeRtosUtils;
+impl FreeRtosUtils {
+    pub fn get_tick_count() -> FreeRtosTickType {
+        unsafe { freertos_rs_xTaskGetTickCount() }
+    }
+
+    pub fn get_tick_count_duration() -> Duration {
+        Duration::ticks(Self::get_tick_count())
     }
 }

@@ -25,9 +25,9 @@
 //! # use freertos_rs::*;
 //! Task::new().name("hello").stack_size(128).start(|| {
 //! 	loop {
-//! 			println!("Hello world!");
-//! 			CurrentTask::delay(Duration::Infinite);
-//! 		}
+//! 		println!("Hello world!");
+//! 		CurrentTask::delay(Duration::infinite());
+//! 	}
 //! }).unwrap();
 //! ```
 //!
@@ -37,7 +37,7 @@
 //! # use freertos_rs::*;
 //! let q = Queue::new(10).unwrap();
 //! q.send(10, Duration::ms(5)).unwrap();
-//! q.receive(Duration::Infinite).unwrap();
+//! q.receive(Duration::infinite()).unwrap();
 //! ```
 //!
 //! Mutex
@@ -46,8 +46,8 @@
 //! # use freertos_rs::*;
 //! let m = Mutex::new(0).unwrap();
 //! {
-//! 	let mut v = m.lock(Duration::Infinite).unwrap();
-//! 		*v += 1;
+//! 	let mut v = m.lock(Duration::infinite()).unwrap();
+//! 	*v += 1;
 //! }
 //! ```
 
