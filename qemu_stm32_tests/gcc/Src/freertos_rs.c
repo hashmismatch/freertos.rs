@@ -36,6 +36,12 @@ uint8_t freertos_rs_sizeof(uint8_t _type) {
 		case 23:
 			return sizeof(TaskFunction_t);
 			break;
+		case 24:
+			return sizeof(TimerHandle_t);
+			break;
+		case 25:
+			return sizeof(TimerCallbackFunction_t);
+			break;
 
 		break;
 		default:
@@ -262,3 +268,62 @@ TaskHandle_t freertos_rs_get_current_task() {
 	return xTaskGetCurrentTaskHandle();
 }
 #endif
+
+
+#if (configUSE_TIMERS == 1)
+
+TimerHandle_t freertos_rs_timer_create(const char * const name, uint8_t name_len, const TickType_t period,
+		uint8_t auto_reload, void * const timer_id, TimerCallbackFunction_t callback)
+{
+	uint8_t c_name[configMAX_TASK_NAME_LEN] = {0};
+	for (int i = 0; i < name_len; i++) {
+		c_name[i] = name[i];
+
+		if (i == configMAX_TASK_NAME_LEN - 1) {
+			break;
+		}
+	}
+
+	UBaseType_t timer_auto_reload = pdFALSE;
+	if (auto_reload == 1) {
+		timer_auto_reload = pdTRUE;
+	}
+
+	TimerHandle_t handle = xTimerCreate(c_name, period, timer_auto_reload, timer_id, callback);
+	return handle;
+}
+
+BaseType_t freertos_rs_timer_start(TimerHandle_t timer, TickType_t block_time) {
+	if (xTimerStart(timer, block_time) != pdPASS) {
+		return 1;
+	}
+	return 0;
+}
+
+BaseType_t freertos_rs_timer_stop(TimerHandle_t timer, TickType_t block_time) {
+	if (xTimerStop(timer, block_time) != pdPASS) {
+		return 1;
+	}
+	return 0;
+}
+
+BaseType_t freertos_rs_timer_delete(TimerHandle_t timer, TickType_t block_time) {
+	if (xTimerDelete(timer, block_time) != pdPASS) {
+		return 1;
+	}
+	return 0;
+}
+
+BaseType_t freertos_rs_timer_change_period(TimerHandle_t timer, TickType_t block_time, TickType_t new_period) {
+	if (xTimerChangePeriod(timer, new_period, block_time) != pdPASS) {
+		return 1;
+	}
+	return 0;
+}
+
+void* freertos_rs_timer_get_id(TimerHandle_t timer) {
+	return pvTimerGetTimerID(timer);
+}
+
+#endif
+

@@ -30,3 +30,5 @@ pub type FreeRtosMutTaskHandle = *mut CVoid;
 pub type FreeRtosQueueHandle = *const CVoid;
 pub type FreeRtosSemaphoreHandle = *const CVoid;
 pub type FreeRtosTaskFunction = *const CVoid;
+pub type FreeRtosTimerHandle = *const CVoid;
+pub type FreeRtosTimerCallback = *const CVoid;
