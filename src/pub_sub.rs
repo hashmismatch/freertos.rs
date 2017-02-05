@@ -75,7 +75,7 @@ impl<T: Sized + Copy> Clone for QueuePublisher<T> {
 
 impl<T: Sized + Copy> Drop for QueueSubscriber<T> {
     fn drop(&mut self) {
-        if let Ok(mut l) = self.inner.publisher.lock(Duration::Infinite) {
+        if let Ok(mut l) = self.inner.publisher.lock(Duration::infinite()) {
             l.unsubscribe(&self.inner);
         }
     }

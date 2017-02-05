@@ -37,7 +37,7 @@ pub extern fn test_sample1() -> i8 {
 		}
 
 		// Wait for the compute task to finish summing
-		let sum = sum_task.into_result(Duration::Infinite).unwrap();
+		let sum = sum_task.into_result(Duration::infinite()).unwrap();
 
 		// Check the result
 		assert_eq!(55, sum);

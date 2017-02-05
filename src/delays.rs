@@ -13,7 +13,7 @@ impl TaskDelay {
     /// Create a new helper, marking the current time as the start of the
     /// next measurement.
     pub fn new() -> TaskDelay {
-        TaskDelay { last_wake_time: CurrentTask::get_tick_count() }
+        TaskDelay { last_wake_time: FreeRtosUtils::get_tick_count() }
     }
 
     /// Delay the execution of the current task by the given duration,
@@ -39,7 +39,7 @@ pub struct TaskDelayPeriodic {
 impl TaskDelayPeriodic {
     /// Create a new timer with the set period.
     pub fn new(period: Duration) -> TaskDelayPeriodic {
-        let l = CurrentTask::get_tick_count();
+        let l = FreeRtosUtils::get_tick_count();
 
         TaskDelayPeriodic {
             last_wake_time: l,
@@ -49,7 +49,7 @@ impl TaskDelayPeriodic {
 
     /// Has the set period passed? If it has, resets the internal timer.
     pub fn should_run(&mut self) -> bool {
-        let c = CurrentTask::get_tick_count();
+        let c = FreeRtosUtils::get_tick_count();
         if (c - self.last_wake_time) < (self.period.to_ticks()) {
             false
         } else {
@@ -65,6 +65,6 @@ impl TaskDelayPeriodic {
 
     /// Reset the internal timer to zero.
     pub fn reset(&mut self) {
-        self.last_wake_time = CurrentTask::get_tick_count();
+        self.last_wake_time = FreeRtosUtils::get_tick_count();
     }
 }

@@ -29,13 +29,13 @@ impl ComputeTaskBuilder for TaskBuilder {
             let task_status = status.clone();
             let task = try!(self.start(move || {
                 {
-                    let mut lock = task_result.lock(Duration::Infinite).unwrap();
+                    let mut lock = task_result.lock(Duration::infinite()).unwrap();
                     let r = func();
                     *lock = Some(r);
                 }
                 // release our reference to the mutex, so it can be deconstructed
                 drop(task_result);
-                task_status.send(ComputeTaskStatus::Finished, Duration::Infinite).unwrap();
+                task_status.send(ComputeTaskStatus::Finished, Duration::infinite()).unwrap();
             }));
 
             (task, result, status)
