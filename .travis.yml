@@ -10,7 +10,7 @@ cache:
     - $HOME/qemu_arm_eclipse
     - $HOME/.cargo
 
-before_script:
+before_script:  
   - sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa &&
     sudo apt-get -qq update &&
     sudo apt-get -qq install gcc-arm-embedded &&
@@ -25,6 +25,7 @@ install:
   - if [ ! -e $QEMU_DIR/bin/qemu-system-gnuarmeclipse ]; then wget $QEMU_URL -O $QEMU_ARCHIVE && tar xzf $QEMU_ARCHIVE -C $HOME ; fi
   - export PATH=$PATH:$QEMU_DIR/bin:$HOME/.cargo/bin  
   - which xargo; if [ ! $? -eq 0 ]; then cargo install xargo; fi
+  - rustup component add rust-src
 
 script:
   - cargo build --verbose
