@@ -19,6 +19,8 @@ before_script:
   - xargo --version
 
 install:
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION  
+  - source ~/.cargo/env
   - export QEMU_ARCHIVE=$HOME/qemueclipse.tgz
   - export QEMU_URL=https://github.com/gnuarmeclipse/qemu/releases/download/gae-2.6.0-20160728/gnuarmeclipse-qemu-debian64-2.6.0-201607280535.tgz
   - export QEMU_DIR=$HOME/qemu/2.6.0-201607280535
@@ -28,6 +30,7 @@ install:
   - rustup component add rust-src
 
 script:
+  - chmod -R a+r $HOME/.cargo
   - cargo build --verbose
   - cargo test --verbose
   - cd qemu_runner && cargo test --verbose
