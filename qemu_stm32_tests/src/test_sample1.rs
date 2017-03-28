@@ -2,6 +2,7 @@ use super::*;
 use prelude::v1::*;
 
 use freertos_rs::*;
+use freertos_rs::patterns::compute_task::*;
 
 #[no_mangle]
 pub extern fn test_sample1() -> i8 {

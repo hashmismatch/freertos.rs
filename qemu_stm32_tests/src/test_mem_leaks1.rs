@@ -2,6 +2,9 @@ use super::*;
 use prelude::v1::*;
 
 use freertos_rs::*;
+use freertos_rs::patterns::compute_task::*;
+use freertos_rs::patterns::pub_sub::*;
+
 
 #[no_mangle]
 pub fn test_mem_leaks1() -> i8 {
