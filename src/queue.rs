@@ -38,7 +38,7 @@ impl<T: Sized + Copy> Queue<T> {
             if freertos_rs_queue_send(self.queue,
                                       &item as *const _ as FreeRtosVoidPtr,
                                       max_wait.to_ticks()) != 0 {
-                Err(FreeRtosError::QueueFull)
+                Err(FreeRtosError::QueueSendTimeout)
             } else {
                 Ok(())
             }
@@ -71,7 +71,7 @@ impl<T: Sized + Copy> Queue<T> {
             if r == 0 {
                 return Ok(buff);
             } else {
-                return Err(FreeRtosError::Timeout);
+                return Err(FreeRtosError::QueueReceiveTimeout);
             }
         }
     }

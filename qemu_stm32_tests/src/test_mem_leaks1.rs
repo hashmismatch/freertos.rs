@@ -116,11 +116,11 @@ pub fn test_mem_leaks1() -> i8 {
 			
 			assert_eq!("A", sub1.receive(w).unwrap());
 			assert_eq!("B", sub1.receive(w).unwrap());
-			assert_eq!(Result::Err(FreeRtosError::Timeout), sub1.receive(w));
+			assert_eq!(Result::Err(FreeRtosError::QueueReceiveTimeout), sub1.receive(w));
 			drop(sub1);
 
 			assert_eq!("B", sub2.receive(w).unwrap());
-			assert_eq!(Result::Err(FreeRtosError::Timeout), sub2.receive(w));
+			assert_eq!(Result::Err(FreeRtosError::QueueReceiveTimeout), sub2.receive(w));
 		}
 		
 		// timers		

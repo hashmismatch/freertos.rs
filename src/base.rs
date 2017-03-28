@@ -2,6 +2,8 @@
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FreeRtosError {
     OutOfMemory,
+    QueueSendTimeout,
+    QueueReceiveTimeout,
     MutexTimeout,
     Timeout,
     QueueFull,
