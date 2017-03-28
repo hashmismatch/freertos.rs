@@ -5,6 +5,7 @@ use queue::*;
 use units::*;
 
 pub type SharedClientWithReplyQueue<T> = Arc<ClientWithReplyQueue<T>>;
+pub type Client<T> = ProcessorClient<T, ()>;
 
 pub trait ReplyableMessage {
     fn reply_to_client_id(&self) -> Option<usize>;
@@ -22,7 +23,7 @@ impl<T> Message<T> where T: Copy {
         Message::Request { val: val }
     }
 
-    pub fn request_with_reply(val: T, client: &Client<Self, SharedClientWithReplyQueue<Self>>) -> Self {
+    pub fn request_with_reply(val: T, client: &ProcessorClient<Self, SharedClientWithReplyQueue<Self>>) -> Self {
         Message::RequestWithReply { val: val, client_id: client.client_reply.id }
     }
 
@@ -67,8 +68,8 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
         Ok(p)
     }
 
-    pub fn new_client(&self) -> Result<Client<T, ()>, FreeRtosError> {
-        let c = Client {
+    pub fn new_client(&self) -> Result<Client<T>, FreeRtosError> {
+        let c = ProcessorClient {
             processor_queue: Arc::downgrade(&self.queue),
             client_reply: ()
         };
@@ -77,7 +78,7 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
     }
 
     
-    pub fn new_client_with_reply(&self, client_receive_queue_size: usize, max_wait: Duration) -> Result<Client<T, SharedClientWithReplyQueue<T>>, FreeRtosError> {        
+    pub fn new_client_with_reply(&self, client_receive_queue_size: usize, max_wait: Duration) -> Result<ProcessorClient<T, SharedClientWithReplyQueue<T>>, FreeRtosError> {        
         if client_receive_queue_size == 0 {
             return Err(FreeRtosError::InvalidQueueSize);
         }
@@ -99,7 +100,7 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
             c
         };
 
-        let c = Client {
+        let c = ProcessorClient {
             processor_queue: Arc::downgrade(&self.queue),
             client_reply: client_reply
         };
@@ -143,12 +144,12 @@ impl<T> ProcessorInner<T> where T: ReplyableMessage +  Copy {
 
 
 
-pub struct Client<T, R> where T: ReplyableMessage + Copy {    
+pub struct ProcessorClient<T, R> where T: ReplyableMessage + Copy {    
     processor_queue: Weak<Queue<T>>,
     client_reply: R
 }
 
-impl<T, R> Client<T, R> where T: ReplyableMessage + Copy {
+impl<T, R> ProcessorClient<T, R> where T: ReplyableMessage + Copy {
     pub fn send(&self, message: T, max_wait: Duration) -> Result<(), FreeRtosError> {
         let processor_queue = try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
         try!(processor_queue.send(message, max_wait));
@@ -156,13 +157,13 @@ impl<T, R> Client<T, R> where T: ReplyableMessage + Copy {
     }
 }
 
-impl<T> Client<Message<T>, ()> where T: Copy {
+impl<T> ProcessorClient<Message<T>, ()> where T: Copy {
     pub fn send_val(&self, val: T, max_wait: Duration) -> Result<(), FreeRtosError> {
         self.send(Message::request(val), max_wait)
     }
 }
 
-impl<T> Client<T, SharedClientWithReplyQueue<T>> where T: ReplyableMessage + Copy {
+impl<T> ProcessorClient<T, SharedClientWithReplyQueue<T>> where T: ReplyableMessage + Copy {
     pub fn call(&self, message: T, max_wait: Duration) -> Result<T, FreeRtosError> {
         try!(self.send(message, max_wait));
         self.client_reply.receive_queue.receive(max_wait)
@@ -173,7 +174,7 @@ impl<T> Client<T, SharedClientWithReplyQueue<T>> where T: ReplyableMessage + Cop
     }
 }
 
-impl<T> Client<Message<T>, SharedClientWithReplyQueue<Message<T>>> where T: Copy {
+impl<T> ProcessorClient<Message<T>, SharedClientWithReplyQueue<Message<T>>> where T: Copy {
     pub fn send_val(&self, val: T, max_wait: Duration) -> Result<(), FreeRtosError> {
         self.send(Message::request(val), max_wait)
     }
@@ -183,6 +184,16 @@ impl<T> Client<Message<T>, SharedClientWithReplyQueue<Message<T>>> where T: Copy
         Ok(reply.get_val())
     }
 }
+
+impl<T, R> Clone for ProcessorClient<T, R> where T: ReplyableMessage + Copy, R: Clone {
+    fn clone(&self) -> Self {
+        ProcessorClient {
+            processor_queue: self.processor_queue.clone(),
+            client_reply: self.client_reply.clone()
+        }
+    }
+}
+
 
 
 pub struct ClientWithReplyQueue<T> where T: ReplyableMessage + Copy {
