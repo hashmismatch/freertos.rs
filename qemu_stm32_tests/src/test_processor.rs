@@ -11,7 +11,7 @@ pub extern fn test_processor() -> i8 {
 
         let shutdown = 255;
 
-        let processor: Processor<Message<usize>> = Processor::new(5).unwrap();
+        let processor: Processor<Message<usize>, usize> = Processor::new(5).unwrap();
         let client_1 = processor.new_client().unwrap();
         let client_2 = processor.new_client_with_reply(1, Duration::ms(100)).unwrap();
 
