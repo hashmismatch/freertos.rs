@@ -76,6 +76,9 @@ pub fn test_mem_leaks1() -> i8 {
 			q.receive(Duration::ms(100)).unwrap();
 		}
 
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #1");
+
 		// compute tasks
 		{
 			let n = 12;
@@ -103,6 +106,11 @@ pub fn test_mem_leaks1() -> i8 {
 
 		}
 
+		CurrentTask::delay(Duration::ms(200));
+
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #2");
+
 		// pub sub
 		{
 			let w = Duration::ms(1);
@@ -122,6 +130,9 @@ pub fn test_mem_leaks1() -> i8 {
 			assert_eq!("B", sub2.receive(w).unwrap());
 			assert_eq!(Result::Err(FreeRtosError::QueueReceiveTimeout), sub2.receive(w));
 		}
+
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #3");
 		
 		// timers		
 		{
@@ -136,6 +147,9 @@ pub fn test_mem_leaks1() -> i8 {
 
 			CurrentTask::delay(Duration::ms(100))
 		}
+
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #4");
 
 		// processor
 		{
@@ -179,10 +193,10 @@ pub fn test_mem_leaks1() -> i8 {
 			assert_eq!(Err(FreeRtosError::ProcessorHasShutDown), client_4.call_val(ProcessorMsg::Val(2), Duration::ms(5)));
 		}
 
-		CurrentTask::delay(Duration::ms(100));		
+		CurrentTask::delay(Duration::ms(300));		
 
 		end_memory_usage = heap_allocated_memory();
-		assert_eq!(start_memory_usage, end_memory_usage);
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage final");
 
 		exit_test(0);
 	}).unwrap();
