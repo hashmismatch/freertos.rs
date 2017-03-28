@@ -2,10 +2,13 @@
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum FreeRtosError {
     OutOfMemory,
+    MutexTimeout,
     Timeout,
     QueueFull,
     StringConversionError,
     TaskNotFound,
+    InvalidQueueSize,
+    ProcessorHasShutDown
 }
 
 unsafe impl Send for CVoid {}

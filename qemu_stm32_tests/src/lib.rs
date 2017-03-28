@@ -88,6 +88,7 @@ pub mod test_mem_leaks1;
 pub mod test_isr_timer4_queue;
 pub mod test_isr_timer4_notify;
 pub mod test_sample1;
+pub mod test_processor;
 pub mod test_timers;
 
 
