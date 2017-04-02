@@ -118,8 +118,20 @@ pub fn test_mem_leaks1() -> i8 {
 			assert_eq!("B", sub2.receive(w).unwrap());
 			assert_eq!(Result::Err(FreeRtosError::Timeout), sub2.receive(w));
 		}
+		
+		// timers		
+		{
+			let timer = Timer::new()
+                .set_period(Duration::ms(50))
+                .set_auto_reload(false)
+                .create(|mut timer| {                    
+                    let a = 1;
+                }).unwrap();
 
+			timer.start(Duration::infinite()).unwrap();
 
+			CurrentTask::delay(Duration::ms(100))
+		}
 
 		CurrentTask::delay(Duration::ms(100));		
 

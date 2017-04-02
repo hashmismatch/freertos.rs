@@ -16,7 +16,10 @@ pub fn shim_sanity_check() -> Result<(), usize> {
                   (20, mem::size_of::<FreeRtosTaskHandle>()),
                   (21, mem::size_of::<FreeRtosQueueHandle>()),
                   (22, mem::size_of::<FreeRtosSemaphoreHandle>()),
-                  (23, mem::size_of::<FreeRtosTaskFunction>())];
+                  (23, mem::size_of::<FreeRtosTaskFunction>()),
+                  (24, mem::size_of::<FreeRtosTimerHandle>()),
+                  (25, mem::size_of::<FreeRtosTimerCallback>())
+                  ];
 
     for check in &checks {
         let c_size = unsafe { freertos_rs_sizeof(check.0) };

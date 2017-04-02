@@ -50,6 +50,13 @@ extern {
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle;
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType;
+
+	pub fn freertos_rs_timer_create(name: FreeRtosCharPtr, name_len: u8, period: FreeRtosTickType, auto_reload: u8, timer_id: FreeRtosVoidPtr, callback: extern fn(FreeRtosTimerHandle) -> ()) -> FreeRtosTimerHandle;
+	pub fn freertos_rs_timer_start(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType;
+	pub fn freertos_rs_timer_stop(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType;
+	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType;
+	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType;
+	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr;
 }
 
 // mocks for testing
@@ -104,6 +111,13 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle { 1 as _ }
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType { 1000 }
+
+	pub fn freertos_rs_timer_create(name: FreeRtosCharPtr, name_len: u8, period: FreeRtosTickType, auto_reload: u8, timer_id: FreeRtosVoidPtr, callback: extern fn(FreeRtosTimerHandle) -> ()) -> FreeRtosTimerHandle { 0 as _ }
+	pub fn freertos_rs_timer_start(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType { 0 }
+	pub fn freertos_rs_timer_stop(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType { 0 }
+	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType { 0 }
+	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType { 0 }
+	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr { 0 as _ }
 }
 
 #[cfg(not(target_os="none"))]

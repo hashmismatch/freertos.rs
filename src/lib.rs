@@ -68,6 +68,7 @@ mod shim;
 
 mod base;
 mod task;
+mod timers;
 mod compute_task;
 mod queue;
 mod semaphore;
@@ -89,5 +90,6 @@ pub use semaphore::*;
 pub use pub_sub::*;
 pub use isr::*;
 pub use delays::*;
+pub use timers::*;
 
 pub use utils::shim_sanity_check;
