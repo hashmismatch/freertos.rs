@@ -159,7 +159,7 @@ pub fn test_mem_leaks1() -> i8 {
 				Shutdown
 			}
 
-			let processor: Processor<Message<ProcessorMsg>> = Processor::new(5).unwrap();
+			let processor: Processor<Message<ProcessorMsg>, usize> = Processor::new(5).unwrap();
 			let client_1 = processor.new_client().unwrap();
 			let client_2 = processor.new_client_with_reply(5, Duration::ms(5)).unwrap();
 			let client_3 = processor.new_client().unwrap();
@@ -171,7 +171,7 @@ pub fn test_mem_leaks1() -> i8 {
 						match m.get_val() {
 							ProcessorMsg::Val(v) => {
 								let processed = v + 1;
-								let r = processor.reply_val(m, ProcessorMsg::Val(processed), Duration::ms(10)).unwrap();
+								let r = processor.reply_val(m, processed, Duration::ms(10)).unwrap();
 							},
 							ProcessorMsg::Shutdown => { break; }
 						}
