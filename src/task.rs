@@ -248,6 +248,13 @@ impl Task {
             }
         }
     }
+
+    /// Get the minimum amount of stack that was ever left on this task.
+    pub fn get_stack_high_water_mark(&self) -> u32 {
+        unsafe {
+            freertos_rs_get_stack_high_water_mark(self.task_handle) as u32
+        }
+    }
 }
 
 /// Helper methods to be performed on the task that is currently executing.
@@ -257,6 +264,13 @@ impl CurrentTask {
     pub fn delay(delay: Duration) {
         unsafe {
             freertos_rs_vTaskDelay(delay.to_ticks());
+        }
+    }
+
+    /// Get the minimum amount of stack that was ever left on the current task.
+    pub fn get_stack_high_water_mark() -> u32 {
+        unsafe {
+            freertos_rs_get_stack_high_water_mark(0 as FreeRtosTaskHandle) as u32
         }
     }
 }

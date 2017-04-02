@@ -176,6 +176,11 @@ void freertos_rs_delete_task(TaskHandle_t task) {
 }
 #endif
 
+#if (INCLUDE_uxTaskGetStackHighWaterMark == 1)
+UBaseType_t freertos_rs_get_stack_high_water_mark(TaskHandle_t task) {
+	return uxTaskGetStackHighWaterMark(task);
+}
+#endif
 
 QueueHandle_t freertos_rs_queue_create(UBaseType_t queue_length, UBaseType_t item_size) {
 	return xQueueCreate(queue_length, item_size);

@@ -46,6 +46,7 @@ extern {
 	pub fn freertos_rs_spawn_task(f: extern fn(FreeRtosMutVoidPtr) -> FreeRtosMutVoidPtr, value: FreeRtosMutVoidPtr, name: FreeRtosCharPtr, name_len: u8, stack_size: u16, priority: FreeRtosUBaseType, task_handle: FreeRtosMutTaskHandle) -> FreeRtosUBaseType;
 	pub fn freertos_rs_delete_task(task: FreeRtosTaskHandle);
 	pub fn freertos_rs_task_get_name(task: FreeRtosTaskHandle) -> FreeRtosCharPtr;
+	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType;
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle;
 
@@ -107,6 +108,7 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_spawn_task(f: extern fn(FreeRtosMutVoidPtr) -> FreeRtosMutVoidPtr, value: FreeRtosMutVoidPtr, name: FreeRtosCharPtr, name_len: u8, stack_size: u16, priority: FreeRtosUBaseType, task_handle: FreeRtosMutTaskHandle) -> FreeRtosUBaseType { 0 }
 	pub fn freertos_rs_delete_task(task: FreeRtosTaskHandle) { }
 	pub fn freertos_rs_task_get_name(task: FreeRtosTaskHandle) -> FreeRtosCharPtr { 0 as _ }
+	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType { 0 }
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle { 1 as _ }
 
