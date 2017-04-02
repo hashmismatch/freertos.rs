@@ -69,25 +69,22 @@ mod shim;
 mod base;
 mod task;
 mod timers;
-mod compute_task;
 mod queue;
 mod semaphore;
 mod mutex;
 mod units;
 mod utils;
 mod isr;
-mod pub_sub;
 mod delays;
 
+pub mod patterns;
 
 pub use base::FreeRtosError;
 pub use task::*;
-pub use compute_task::*;
 pub use queue::*;
 pub use units::*;
 pub use mutex::*;
 pub use semaphore::*;
-pub use pub_sub::*;
 pub use isr::*;
 pub use delays::*;
 pub use timers::*;

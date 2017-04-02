@@ -65,7 +65,7 @@ impl<T> Mutex<T> {
             };
 
             if res != 0 {
-                return Err(FreeRtosError::Timeout);
+                return Err(FreeRtosError::MutexTimeout);
             }
 
             Ok(MutexGuard {
