@@ -44,7 +44,7 @@ uint8_t freertos_rs_sizeof(uint8_t _type) {
 			break;
 
 		case 30:
-			return sizeof(xTASK_STATUS);
+			return sizeof(TaskStatus_t);
 			break;
 		case 31:
 			return sizeof(eTaskState);
@@ -79,8 +79,18 @@ TickType_t freertos_rs_xTaskGetTickCount() {
 	return xTaskGetTickCount();
 }
 
+#if (configUSE_TRACE_FACILITY == 1)
+UBaseType_t freertos_rs_get_system_state(TaskStatus_t * const pxTaskStatusArray, const UBaseType_t uxArraySize, uint32_t * const pulTotalRunTime) {
+	return uxTaskGetSystemState(pxTaskStatusArray, uxArraySize, pulTotalRunTime);
+}
+#endif
+
 TickType_t freertos_rs_get_portTICK_PERIOD_MS() {
 	return portTICK_PERIOD_MS;
+}
+
+UBaseType_t freertos_rs_get_number_of_tasks() {
+	return uxTaskGetNumberOfTasks();
 }
 
 #if (configUSE_RECURSIVE_MUTEXES == 1)

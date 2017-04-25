@@ -39,14 +39,14 @@ pub type FreeRtosTimerHandle = *const CVoid;
 pub type FreeRtosTimerCallback = *const CVoid;
 pub type FreeRtosStackType = *const CVoid;
 
-pub type FreeRtosTaskState = FreeRtosUBaseType;
+pub type FreeRtosTaskState = u8;
 
 pub type FreeRtosUnsignedLong = u32;
 pub type FreeRtosUnsignedShort = u16;
 
-#[repr(C)]
 #[derive(Copy, Clone, Debug)]
-pub struct FreeRtosTaskStatus {
+#[repr(C)]
+pub struct FreeRtosTaskStatusFfi {
     pub handle: FreeRtosTaskHandle,
     pub task_name: FreeRtosCharPtr,
     pub task_number: FreeRtosUBaseType,
@@ -54,7 +54,5 @@ pub struct FreeRtosTaskStatus {
     pub current_priority: FreeRtosUBaseType,
     pub base_priority: FreeRtosUBaseType,
     pub run_time_counter: FreeRtosUnsignedLong,
-    pub stack_base: FreeRtosStackType,
     pub stack_high_water_mark: FreeRtosUnsignedShort
 }
-

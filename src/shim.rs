@@ -9,6 +9,8 @@ extern {
 	pub fn freertos_rs_vTaskDelay(xTicksToDelay: FreeRtosTickType);
 	pub fn freertos_rs_get_portTICK_PERIOD_MS() -> FreeRtosTickType;
 
+	pub fn freertos_rs_get_number_of_tasks() -> FreeRtosUBaseType;
+
 	pub fn freertos_rs_xTaskGetTickCount() -> FreeRtosTickType;
 
 	pub fn freertos_rs_create_recursive_mutex() -> FreeRtosQueueHandle;
@@ -49,6 +51,7 @@ extern {
 	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType;
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle;
+	pub fn freertos_rs_get_system_state(tasks: *mut FreeRtosTaskStatusFfi, tasks_len: FreeRtosUBaseType, total_run_time: *mut u32) -> FreeRtosUBaseType;
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType;
 
@@ -70,6 +73,7 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_vTaskDelayUntil(pxPreviousWakeTime: *mut FreeRtosTickType, xTimeIncrement: FreeRtosTickType) { }
 	pub fn freertos_rs_vTaskDelay(xTicksToDelay: FreeRtosTickType) { }
 	pub fn freertos_rs_get_portTICK_PERIOD_MS() -> FreeRtosTickType { 1 }
+	pub fn freertos_rs_get_number_of_tasks() -> FreeRtosUBaseType { 0 }
 
 	pub fn freertos_rs_xTaskGetTickCount() -> FreeRtosTickType { 1 }
 
@@ -111,6 +115,7 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType { 0 }
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle { 1 as _ }
+	pub fn freertos_rs_get_system_state(tasks: *mut FreeRtosTaskStatusFfi, tasks_len: FreeRtosUBaseType, total_run_time: *mut u32) -> FreeRtosUBaseType { 0 }
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType { 1000 }
 

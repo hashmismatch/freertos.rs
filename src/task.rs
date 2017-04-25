@@ -8,6 +8,7 @@ use isr::*;
 unsafe impl Send for Task {}
 
 /// Handle for a FreeRTOS task
+#[derive(Debug)]
 pub struct Task {
     task_handle: FreeRtosTaskHandle,
 }
@@ -275,6 +276,25 @@ impl CurrentTask {
     }
 }
 
+#[derive(Debug)]
+pub struct FreeRtosSchedulerState {
+    pub tasks: Vec<FreeRtosTaskStatus>,
+    pub total_run_time: u32
+}
+
+#[derive(Debug)]
+pub struct FreeRtosTaskStatus {
+    pub task: Task,
+    pub name: String,
+    pub task_number: FreeRtosUBaseType,
+    pub task_state: FreeRtosTaskState,
+    pub current_priority: TaskPriority,
+    pub base_priority: TaskPriority,
+    pub run_time_counter: FreeRtosUnsignedLong,
+    pub stack_high_water_mark: FreeRtosUnsignedShort
+}
+
+
 pub struct FreeRtosUtils;
 impl FreeRtosUtils {
     pub fn get_tick_count() -> FreeRtosTickType {
@@ -283,5 +303,38 @@ impl FreeRtosUtils {
 
     pub fn get_tick_count_duration() -> Duration {
         Duration::ticks(Self::get_tick_count())
+    }
+
+    pub fn get_number_of_tasks() -> usize {
+        unsafe { freertos_rs_get_number_of_tasks() as usize }
+    }
+
+    pub fn get_all_tasks(tasks_len: Option<usize>) -> FreeRtosSchedulerState {        
+        let tasks_len = tasks_len.unwrap_or(Self::get_number_of_tasks());
+        let mut tasks = Vec::with_capacity(tasks_len as usize);
+        let mut total_run_time = 0;
+        
+        unsafe {            
+            let filled = freertos_rs_get_system_state(tasks.as_mut_ptr(), tasks_len as FreeRtosUBaseType, &mut total_run_time);
+            tasks.set_len(filled as usize);
+        }
+        
+        let tasks = tasks.into_iter().map(|t| {
+            FreeRtosTaskStatus {
+                task: Task { task_handle: t.handle },
+                name: unsafe { str_from_c_string(t.task_name) }.unwrap_or_else(|_| String::from("?")),
+                task_number: t.task_number,
+                task_state: t.task_state,
+                current_priority: TaskPriority(t.current_priority as u8),
+                base_priority: TaskPriority(t.base_priority as u8),
+                run_time_counter: t.run_time_counter,
+                stack_high_water_mark: t.stack_high_water_mark
+            }
+        }).collect();
+
+        FreeRtosSchedulerState {
+            tasks: tasks,
+            total_run_time: total_run_time
+        }
     }
 }
