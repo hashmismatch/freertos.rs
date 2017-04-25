@@ -43,6 +43,20 @@ uint8_t freertos_rs_sizeof(uint8_t _type) {
 			return sizeof(TimerCallbackFunction_t);
 			break;
 
+		case 30:
+			return sizeof(xTASK_STATUS);
+			break;
+		case 31:
+			return sizeof(eTaskState);
+			break;
+		case 32:
+			return sizeof(unsigned long);
+			break;
+		case 33:
+			return sizeof(unsigned short);
+			break;
+		
+
 		break;
 		default:
 			return 0;

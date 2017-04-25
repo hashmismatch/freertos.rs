@@ -18,7 +18,12 @@ pub fn shim_sanity_check() -> Result<(), usize> {
                   (22, mem::size_of::<FreeRtosSemaphoreHandle>()),
                   (23, mem::size_of::<FreeRtosTaskFunction>()),
                   (24, mem::size_of::<FreeRtosTimerHandle>()),
-                  (25, mem::size_of::<FreeRtosTimerCallback>())
+                  (25, mem::size_of::<FreeRtosTimerCallback>()),
+
+                  (30, mem::size_of::<FreeRtosTaskStatus>()),
+                  (31, mem::size_of::<FreeRtosTaskState>()),
+                  (32, mem::size_of::<FreeRtosUnsignedLong>()),
+                  (33, mem::size_of::<FreeRtosUnsignedShort>())
                   ];
 
     for check in &checks {
