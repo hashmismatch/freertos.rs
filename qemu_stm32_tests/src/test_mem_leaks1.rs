@@ -159,7 +159,7 @@ pub fn test_mem_leaks1() -> i8 {
 				Shutdown
 			}
 
-			let processor: Processor<Message<ProcessorMsg>, usize> = Processor::new(5).unwrap();
+			let processor: Processor<InputMessage<ProcessorMsg>, usize> = Processor::new(5).unwrap();
 			let client_1 = processor.new_client().unwrap();
 			let client_2 = processor.new_client_with_reply(5, Duration::ms(5)).unwrap();
 			let client_3 = processor.new_client().unwrap();
