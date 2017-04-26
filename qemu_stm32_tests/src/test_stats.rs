@@ -23,7 +23,7 @@ pub extern fn test_stats() -> i8 {
         
         let tasks = FreeRtosUtils::get_all_tasks(Some(10));
         assert_eq!(5, tasks.tasks.len());
-        debug_print(&format!("All tasks {:#?}", tasks));
+        debug_print(&format!("{}", tasks));
 
 		exit_test(0);
 

@@ -282,6 +282,44 @@ pub struct FreeRtosSchedulerState {
     pub total_run_time: u32
 }
 
+impl fmt::Display for FreeRtosSchedulerState {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {        
+        try!(fmt.write_str("FreeRTOS tasks\r\n"));
+
+        write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
+            id = "ID",
+            name = "Name",
+            state = "State",
+            priority = "Priority",
+            stack = "Stack left",
+            cpu_abs = "CPU",
+            cpu_rel = "%"
+            );
+
+        for task in &self.tasks {
+            write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
+            id = task.task_number,
+            name = task.name,
+            state = format!("{:?}", task.task_state),
+            priority = task.current_priority.0,
+            stack = task.stack_high_water_mark,
+            cpu_abs = task.run_time_counter,
+            cpu_rel = if self.total_run_time > 0 && task.run_time_counter <= self.total_run_time {
+                format!("{: <3}%", (((task.run_time_counter as u64) * 100) / self.total_run_time as u64) as u32)
+            } else {
+                "-".to_string()
+            }
+            );
+        }
+        
+        if self.total_run_time > 0 {
+            write!(fmt, "Total run time: {}\r\n", self.total_run_time);
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct FreeRtosTaskStatus {
     pub task: Task,
@@ -318,7 +356,7 @@ impl FreeRtosUtils {
             let filled = freertos_rs_get_system_state(tasks.as_mut_ptr(), tasks_len as FreeRtosUBaseType, &mut total_run_time);
             tasks.set_len(filled as usize);
         }
-        
+
         let tasks = tasks.into_iter().map(|t| {
             FreeRtosTaskStatus {
                 task: Task { task_handle: t.handle },
