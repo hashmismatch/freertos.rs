@@ -305,7 +305,13 @@ impl fmt::Display for FreeRtosSchedulerState {
             stack = task.stack_high_water_mark,
             cpu_abs = task.run_time_counter,
             cpu_rel = if self.total_run_time > 0 && task.run_time_counter <= self.total_run_time {
-                format!("{: <3}%", (((task.run_time_counter as u64) * 100) / self.total_run_time as u64) as u32)
+                let p = (((task.run_time_counter as u64) * 100) / self.total_run_time as u64) as u32;
+                let ps = if p == 0 && task.run_time_counter > 0 {
+                    "<1".to_string()
+                } else {
+                    p.to_string()
+                };
+                format!("{: >3}%", ps)
             } else {
                 "-".to_string()
             }
