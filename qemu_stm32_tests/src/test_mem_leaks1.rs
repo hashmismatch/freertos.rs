@@ -136,8 +136,7 @@ pub fn test_mem_leaks1() -> i8 {
 		
 		// timers		
 		{
-			let timer = Timer::new()
-                .set_period(Duration::ms(50))
+			let timer = Timer::new(Duration::ms(50))
                 .set_auto_reload(false)
                 .create(|mut timer| {                    
                     let a = 1;

@@ -28,7 +28,7 @@ impl<T: Sized + Copy> QueuePublisher<T> {
 
     /// Send an item to every subscriber. Returns the number of
     /// subscribers that have received the item.
-    pub fn send(&self, item: T, max_wait: Duration) -> usize {
+    pub fn send<D: DurationTicks>(&self, item: T, max_wait: D) -> usize {
         let mut sent_to = 0;
 
         if let Ok(m) = self.inner.lock(max_wait) {
@@ -43,9 +43,9 @@ impl<T: Sized + Copy> QueuePublisher<T> {
     }
 
     /// Subscribe to this publisher. Can accept a fixed amount of items.
-    pub fn subscribe(&self,
+    pub fn subscribe<D: DurationTicks>(&self,
                      max_size: usize,
-                     create_max_wait: Duration)
+                     create_max_wait: D)
                      -> Result<QueueSubscriber<T>, FreeRtosError> {
         let mut inner = try!(self.inner.lock(create_max_wait));
 

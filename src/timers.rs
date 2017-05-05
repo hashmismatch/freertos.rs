@@ -20,13 +20,13 @@ pub struct Timer {
 }
 
 /// Helper builder for a new software timer.
-pub struct TimerBuilder {
+pub struct TimerBuilder<D: DurationTicks> {
     name: String,
-    period: Duration,
+    period: D,
     auto_reload: bool
 }
 
-impl TimerBuilder {
+impl<D: DurationTicks> TimerBuilder<D> {
     /// Set the name of the timer.
     pub fn set_name(&mut self, name: &str) -> &mut Self {
         self.name = name.into();
@@ -34,7 +34,7 @@ impl TimerBuilder {
     }
 
     /// Set the period of the timer.
-    pub fn set_period(&mut self, period: Duration) -> &mut Self {
+    pub fn set_period(&mut self, period: D) -> &mut Self {
         self.period = period;
         self
     }
@@ -52,7 +52,7 @@ impl TimerBuilder {
         where F: Fn(Timer) -> (),
               F: Send + 'static
     {
-        Timer::spawn(self.name.as_str(), self.period, self.auto_reload, callback)
+        Timer::spawn(self.name.as_str(), self.period.to_ticks(), self.auto_reload, callback)
     }
 }
 
@@ -60,16 +60,16 @@ impl TimerBuilder {
 
 impl Timer {
     /// Create a new timer builder.
-    pub fn new() -> TimerBuilder {
+    pub fn new<D: DurationTicks>(period: D) -> TimerBuilder<D> {
         TimerBuilder {
             name: "timer".into(),
-            period: Duration::ms(1000),
+            period: period,
             auto_reload: true
         }
     }
 
     unsafe fn spawn_inner<'a>(name: &str,
-                              period: Duration,
+                              period_ticks: FreeRtosTickType,
                               auto_reload: bool,
                               callback: Box<Fn(Timer) + Send + 'a>,)
                               -> Result<Timer, FreeRtosError> {
@@ -83,7 +83,7 @@ impl Timer {
 
             let ret = freertos_rs_timer_create(name.as_ptr(),
                                                name_len as u8,
-                                               period.to_ticks(),
+                                               period_ticks,
                                                if auto_reload { 1 } else { 0 },
                                                param_ptr,
                                                timer_callback);
@@ -121,7 +121,7 @@ impl Timer {
 
 
     fn spawn<F>(name: &str,
-                period: Duration,
+                period_tick: FreeRtosTickType,
                 auto_reload: bool,
                 callback: F)
                 -> Result<Timer, FreeRtosError>
@@ -129,12 +129,12 @@ impl Timer {
               F: Send + 'static
     {
         unsafe {
-            Timer::spawn_inner(name, period, auto_reload, Box::new(callback))
+            Timer::spawn_inner(name, period_tick, auto_reload, Box::new(callback))
         }
     }
 
     /// Start the timer.
-    pub fn start(&self, block_time: Duration) -> Result<(), FreeRtosError> {
+    pub fn start<D: DurationTicks>(&self, block_time: D) -> Result<(), FreeRtosError> {
         unsafe {
             if freertos_rs_timer_start(self.handle, block_time.to_ticks()) == 0 {
                 Ok(())
@@ -145,7 +145,7 @@ impl Timer {
     }
 
     /// Stop the timer.
-    pub fn stop(&self, block_time: Duration) -> Result<(), FreeRtosError> {
+    pub fn stop<D: DurationTicks>(&self, block_time: D) -> Result<(), FreeRtosError> {
         unsafe {
             if freertos_rs_timer_stop(self.handle, block_time.to_ticks()) == 0 {
                 Ok(())
@@ -156,7 +156,7 @@ impl Timer {
     }
 
     /// Change the period of the timer.
-    pub fn change_period(&self, block_time: Duration, new_period: Duration) -> Result<(), FreeRtosError> {
+    pub fn change_period<D: DurationTicks>(&self, block_time: D, new_period: D) -> Result<(), FreeRtosError> {
         unsafe {
             if freertos_rs_timer_change_period(self.handle, block_time.to_ticks(), new_period.to_ticks()) == 0 {
                 Ok(())

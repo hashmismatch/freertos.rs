@@ -225,15 +225,15 @@ impl Task {
     }
 
     /// Take the notification and either clear the notification value or decrement it by one.
-    pub fn take_notification(&self, clear: bool, wait_for: Duration) -> u32 {
+    pub fn take_notification<D: DurationTicks>(&self, clear: bool, wait_for: D) -> u32 {
         unsafe { freertos_rs_task_notify_take(if clear { 1 } else { 0 }, wait_for.to_ticks()) }
     }
 
     /// Wait for a notification to be posted.
-    pub fn wait_for_notification(&self,
+    pub fn wait_for_notification<D: DurationTicks>(&self,
                                  clear_bits_enter: u32,
                                  clear_bits_exit: u32,
-                                 wait_for: Duration)
+                                 wait_for: D)
                                  -> Result<u32, FreeRtosError> {
         unsafe {
             let mut val = 0;
@@ -262,7 +262,7 @@ impl Task {
 pub struct CurrentTask;
 impl CurrentTask {
     /// Delay the execution of the current task.
-    pub fn delay(delay: Duration) {
+    pub fn delay<D: DurationTicks>(delay: D) {
         unsafe {
             freertos_rs_vTaskDelay(delay.to_ticks());
         }

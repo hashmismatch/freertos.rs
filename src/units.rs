@@ -1,4 +1,10 @@
 use shim::*;
+use base::FreeRtosTickType;
+
+pub trait DurationTicks : Copy + Clone {
+    /// Convert to ticks, the internal time measurement unit of FreeRTOS
+    fn to_ticks(&self) -> FreeRtosTickType;
+}
 
 /// Time unit used by FreeRTOS, passed to the scheduler as ticks.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -31,12 +37,13 @@ impl Duration {
         Self::ticks(1)
     }
 
-    /// Convert to ticks, the internal time measurement unit of FreeRTOS
-    pub fn to_ticks(&self) -> u32 {
-        self.ticks
-    }
-
     pub fn to_ms(&self) -> u32 {
         unsafe { self.ticks * freertos_rs_get_portTICK_PERIOD_MS() } 
+    }
+}
+
+impl DurationTicks for Duration {
+    fn to_ticks(&self) -> FreeRtosTickType {
+        self.ticks
     }
 }

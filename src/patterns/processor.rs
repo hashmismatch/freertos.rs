@@ -67,7 +67,7 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
     }
 
     
-    pub fn new_client_with_reply(&self, client_receive_queue_size: usize, max_wait: Duration) -> Result<ProcessorClient<I, SharedClientWithReplyQueue<O>>, FreeRtosError> {        
+    pub fn new_client_with_reply<D: DurationTicks>(&self, client_receive_queue_size: usize, max_wait: D) -> Result<ProcessorClient<I, SharedClientWithReplyQueue<O>>, FreeRtosError> {        
         if client_receive_queue_size == 0 {
             return Err(FreeRtosError::InvalidQueueSize);
         }
@@ -101,7 +101,7 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
         &*self.queue
     }
 
-    pub fn reply(&self, received_message: I, reply: O, max_wait: Duration) -> Result<bool, FreeRtosError> {
+    pub fn reply<D: DurationTicks>(&self, received_message: I, reply: O, max_wait: D) -> Result<bool, FreeRtosError> {
         if let Some(client_id) = received_message.reply_to_client_id() {            
             let inner = try!(self.inner.lock(max_wait));
             if let Some(client) = inner.clients.iter().flat_map(|ref x| x.1.upgrade().into_iter()).find(|x| x.id == client_id) {
@@ -115,7 +115,7 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
 }
 
 impl<I, O> Processor<InputMessage<I>, O> where I: Copy, O: Copy {
-    pub fn reply_val(&self, received_message: InputMessage<I>, reply: O, max_wait: Duration) -> Result<bool, FreeRtosError> {
+    pub fn reply_val<D: DurationTicks>(&self, received_message: InputMessage<I>, reply: O, max_wait: D) -> Result<bool, FreeRtosError> {
         self.reply(received_message, reply, max_wait)
     }
 }
@@ -139,7 +139,7 @@ pub struct ProcessorClient<I, C> where I: ReplyableMessage + Copy {
 }
 
 impl<I, O> ProcessorClient<I, O> where I: ReplyableMessage + Copy {
-    pub fn send(&self, message: I, max_wait: Duration) -> Result<(), FreeRtosError> {
+    pub fn send<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<(), FreeRtosError> {
         let processor_queue = try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
         try!(processor_queue.send(message, max_wait));
         Ok(())   
@@ -147,13 +147,13 @@ impl<I, O> ProcessorClient<I, O> where I: ReplyableMessage + Copy {
 }
 
 impl<I> ProcessorClient<InputMessage<I>, ()> where I: Copy {
-    pub fn send_val(&self, val: I, max_wait: Duration) -> Result<(), FreeRtosError> {
+    pub fn send_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<(), FreeRtosError> {
         self.send(InputMessage::request(val), max_wait)
     }
 }
 
 impl<I, O> ProcessorClient<I, SharedClientWithReplyQueue<O>> where I: ReplyableMessage + Copy, O: Copy {
-    pub fn call(&self, message: I, max_wait: Duration) -> Result<O, FreeRtosError> {
+    pub fn call<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<O, FreeRtosError> {
         try!(self.send(message, max_wait));
         self.client_reply.receive_queue.receive(max_wait)
     }
@@ -164,11 +164,11 @@ impl<I, O> ProcessorClient<I, SharedClientWithReplyQueue<O>> where I: ReplyableM
 }
 
 impl<I, O> ProcessorClient<InputMessage<I>, SharedClientWithReplyQueue<O>> where I: Copy, O: Copy {
-    pub fn send_val(&self, val: I, max_wait: Duration) -> Result<(), FreeRtosError> {
+    pub fn send_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<(), FreeRtosError> {
         self.send(InputMessage::request(val), max_wait)
     }
     
-    pub fn call_val(&self, val: I, max_wait: Duration) -> Result<O, FreeRtosError> {
+    pub fn call_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<O, FreeRtosError> {
         let reply = try!(self.call(InputMessage::request_with_reply(val, self.client_reply.id), max_wait));
         Ok(reply)
     }

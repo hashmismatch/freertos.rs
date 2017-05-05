@@ -56,7 +56,7 @@ impl<T> Mutex<T> {
     }
 
     /// Try to obtain a lock and mutable access to our inner value
-    pub fn lock(&self, max_wait: Duration) -> Result<MutexGuard<T>, FreeRtosError> {
+    pub fn lock<D: DurationTicks>(&self, max_wait: D) -> Result<MutexGuard<T>, FreeRtosError> {
         unsafe {
             let res = if self.recursive {
                 freertos_rs_take_recursive_mutex(self.mutex, max_wait.to_ticks())
