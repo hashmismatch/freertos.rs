@@ -84,7 +84,7 @@ impl<T: Sized + Copy> Drop for QueueSubscriber<T> {
 
 impl<T: Sized + Copy> QueueSubscriber<T> {
     /// Wait for an item to be posted from the publisher.
-    pub fn receive(&self, max_wait: Duration) -> Result<T, FreeRtosError> {
+    pub fn receive<D: DurationTicks>(&self, max_wait: D) -> Result<T, FreeRtosError> {
         self.inner.queue.receive(max_wait)
     }
 }
