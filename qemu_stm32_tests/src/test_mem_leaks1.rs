@@ -34,7 +34,7 @@ pub fn test_mem_leaks1() -> i8 {
 
 		// recursive mutexes
 		for i in 0..100 {
-			let m = Mutex::new_recursive(0).unwrap();
+			let m = RecursiveMutex::new(0).unwrap();
 			let mut v = m.lock(Duration::ms(50)).unwrap();
 			*v += 1;
 		}
