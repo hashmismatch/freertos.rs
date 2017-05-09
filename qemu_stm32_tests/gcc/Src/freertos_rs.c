@@ -356,3 +356,10 @@ void* freertos_rs_timer_get_id(TimerHandle_t timer) {
 
 #endif
 
+void freertos_rs_enter_critical() {
+	taskENTER_CRITICAL();
+}
+
+void freertos_rs_exit_critical() {
+	taskEXIT_CRITICAL();
+}

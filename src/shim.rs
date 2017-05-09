@@ -61,6 +61,9 @@ extern {
 	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType;
 	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType;
 	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr;
+
+	pub fn freertos_rs_enter_critical();
+	pub fn freertos_rs_exit_critical();
 }
 
 // mocks for testing
@@ -125,6 +128,9 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType { 0 }
 	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType { 0 }
 	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr { 0 as _ }
+
+	pub fn freertos_rs_enter_critical() { }
+	pub fn freertos_rs_exit_critical() { }
 }
 
 #[cfg(not(target_os="none"))]

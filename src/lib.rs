@@ -78,6 +78,7 @@ mod units;
 mod utils;
 mod isr;
 mod delays;
+mod critical;
 
 pub mod patterns;
 
@@ -90,5 +91,6 @@ pub use semaphore::*;
 pub use isr::*;
 pub use delays::*;
 pub use timers::*;
+pub use critical::*;
 
 pub use utils::shim_sanity_check;
