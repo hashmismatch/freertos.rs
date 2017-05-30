@@ -16,8 +16,7 @@ pub extern fn test_timers() -> i8 {
                 let timer_a = {
                     let counter_a = counter_a.clone();        
                     
-                    Timer::new()
-                        .set_period(Duration::ms(50))
+                    Timer::new(Duration::ms(50))
                         .set_auto_reload(true)
                         .create(move |mut timer| {                    
                             if let Ok(mut counter_a) = counter_a.lock(Duration::ms(5)) {
@@ -29,8 +28,7 @@ pub extern fn test_timers() -> i8 {
                 let timer_b = {
                     let counter_b = counter_b.clone();        
                     
-                    Timer::new()
-                        .set_period(Duration::ms(100))
+                    Timer::new(Duration::ms(100))
                         .set_auto_reload(false)
                         .create(move |mut timer| {                    
                             if let Ok(mut counter_b) = counter_b.lock(Duration::ms(5)) {
@@ -62,8 +60,7 @@ pub extern fn test_timers() -> i8 {
             let timer_a = {
                 let counter_a = counter_a.clone();        
                 
-                Timer::new()
-                    .set_period(Duration::ms(50))
+                Timer::new(Duration::ms(50))
                     .set_auto_reload(false)
                     .create(move |mut timer| {                    
                         if let Ok(mut counter_a) = counter_a.lock(Duration::ms(5)) {

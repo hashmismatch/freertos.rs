@@ -40,8 +40,8 @@ impl Semaphore {
     // }
     //
 
-    /// Lock this semaphore
-    pub fn lock(&self, max_wait: Duration) -> Result<SemaphoreGuard, FreeRtosError> {
+    /// Lock this semaphore in a RAII fashion
+    pub fn lock<D: DurationTicks>(&self, max_wait: D) -> Result<SemaphoreGuard, FreeRtosError> {
         unsafe {
             let res = freertos_rs_take_mutex(self.semaphore, max_wait.to_ticks());
 

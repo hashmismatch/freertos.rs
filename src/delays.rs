@@ -18,7 +18,7 @@ impl TaskDelay {
 
     /// Delay the execution of the current task by the given duration,
     /// minus the time spent in this task since the last delay.
-    pub fn delay_until(&mut self, delay: Duration) {
+    pub fn delay_until<D: DurationTicks>(&mut self, delay: D) {
         unsafe {
             freertos_rs_vTaskDelayUntil(&mut self.last_wake_time as *mut FreeRtosTickType,
                                         delay.to_ticks());
@@ -33,24 +33,24 @@ impl TaskDelay {
 /// and it will then reset the timer for that period.
 pub struct TaskDelayPeriodic {
     last_wake_time: FreeRtosTickType,
-    period: Duration,
+    period_ticks: FreeRtosTickType,
 }
 
 impl TaskDelayPeriodic {
     /// Create a new timer with the set period.
-    pub fn new(period: Duration) -> TaskDelayPeriodic {
+    pub fn new<D: DurationTicks>(period: D) -> TaskDelayPeriodic {
         let l = FreeRtosUtils::get_tick_count();
 
         TaskDelayPeriodic {
             last_wake_time: l,
-            period: period,
+            period_ticks: period.to_ticks(),
         }
     }
 
     /// Has the set period passed? If it has, resets the internal timer.
     pub fn should_run(&mut self) -> bool {
         let c = FreeRtosUtils::get_tick_count();
-        if (c - self.last_wake_time) < (self.period.to_ticks()) {
+        if (c - self.last_wake_time) < (self.period_ticks) {
             false
         } else {
             self.last_wake_time = c;
@@ -59,8 +59,8 @@ impl TaskDelayPeriodic {
     }
 
     /// Set a new delay period
-    pub fn set_period(&mut self, period: Duration) {
-        self.period = period;
+    pub fn set_period<D: DurationTicks>(&mut self, period: D) {
+        self.period_ticks = period.to_ticks();
     }
 
     /// Reset the internal timer to zero.

@@ -33,7 +33,7 @@ impl<T: Sized + Copy> Queue<T> {
     }
 
     /// Send an item to the end of the queue. Wait for the queue to have empty space for it.
-    pub fn send(&self, item: T, max_wait: Duration) -> Result<(), FreeRtosError> {
+    pub fn send<D: DurationTicks>(&self, item: T, max_wait: D) -> Result<(), FreeRtosError> {
         unsafe {
             if freertos_rs_queue_send(self.queue,
                                       &item as *const _ as FreeRtosVoidPtr,
@@ -62,7 +62,7 @@ impl<T: Sized + Copy> Queue<T> {
     }
 
     /// Wait for an item to be available on the queue.
-    pub fn receive(&self, max_wait: Duration) -> Result<T, FreeRtosError> {
+    pub fn receive<D: DurationTicks>(&self, max_wait: D) -> Result<T, FreeRtosError> {
         unsafe {
             let mut buff = mem::zeroed::<T>();
             let r = freertos_rs_queue_receive(self.queue,

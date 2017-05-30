@@ -4,56 +4,46 @@ use mutex::*;
 use queue::*;
 use units::*;
 
-pub type SharedClientWithReplyQueue<T> = Arc<ClientWithReplyQueue<T>>;
+pub type SharedClientWithReplyQueue<O> = Arc<ClientWithReplyQueue<O>>;
+pub type Client<I> = ProcessorClient<I, ()>;
+pub type ClientWithReplies<I, O> = ProcessorClient<I, SharedClientWithReplyQueue<O>>;
 
 pub trait ReplyableMessage {
     fn reply_to_client_id(&self) -> Option<usize>;
 }
 
 #[derive(Copy, Clone)]
-pub enum Message<T> where T: Copy {
-    Request { val: T },
-    RequestWithReply { val: T, client_id: usize },
-    Reply { val: T}
+pub struct InputMessage<I> where I: Copy {
+    val: I,
+    reply_to_client_id: Option<usize>
 }
 
-impl<T> Message<T> where T: Copy {
-    pub fn request(val: T) -> Self {
-        Message::Request { val: val }
+impl<I> InputMessage<I> where I: Copy {
+    pub fn request(val: I) -> Self {
+        InputMessage { val: val, reply_to_client_id: None }
     }
 
-    pub fn request_with_reply(val: T, client: &Client<Self, SharedClientWithReplyQueue<Self>>) -> Self {
-        Message::RequestWithReply { val: val, client_id: client.client_reply.id }
+    pub fn request_with_reply(val: I, client_id: usize) -> Self {
+        InputMessage { val: val, reply_to_client_id: Some(client_id) }
     }
 
-    pub fn reply(val: T) -> Self {
-        Message::Reply { val: val }
-    }
-
-    pub fn get_val(&self) -> T {
-        match *self {
-            Message::Request { val } => val,
-            Message::RequestWithReply { val, .. } => val,
-            Message::Reply { val } => val
-        }
+    pub fn get_val(&self) -> I {
+        self.val
     }
 }
 
-impl<T> ReplyableMessage for Message<T> where T: Copy {
+impl<I> ReplyableMessage for InputMessage<I> where I: Copy {
     fn reply_to_client_id(&self) -> Option<usize> {
-        match *self {
-            Message::RequestWithReply { client_id, .. } => Some(client_id),
-            _ => None
-        }
+        self.reply_to_client_id
     }
 }
 
-pub struct Processor<T> where T: ReplyableMessage + Copy {
-    queue: Arc<Queue<T>>,
-    inner: Arc<Mutex<ProcessorInner<T>>>,
+pub struct Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
+    queue: Arc<Queue<I>>,
+    inner: Arc<Mutex<ProcessorInner<O>>>,
 }
 
-impl<T> Processor<T> where T: ReplyableMessage + Copy {
+impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
     pub fn new(queue_size: usize) -> Result<Self, FreeRtosError> {
         let p = ProcessorInner {
             clients: Vec::new(), 
@@ -67,8 +57,8 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
         Ok(p)
     }
 
-    pub fn new_client(&self) -> Result<Client<T, ()>, FreeRtosError> {
-        let c = Client {
+    pub fn new_client(&self) -> Result<Client<I>, FreeRtosError> {
+        let c = ProcessorClient {
             processor_queue: Arc::downgrade(&self.queue),
             client_reply: ()
         };
@@ -77,7 +67,7 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
     }
 
     
-    pub fn new_client_with_reply(&self, client_receive_queue_size: usize, max_wait: Duration) -> Result<Client<T, SharedClientWithReplyQueue<T>>, FreeRtosError> {        
+    pub fn new_client_with_reply<D: DurationTicks>(&self, client_receive_queue_size: usize, max_wait: D) -> Result<ProcessorClient<I, SharedClientWithReplyQueue<O>>, FreeRtosError> {        
         if client_receive_queue_size == 0 {
             return Err(FreeRtosError::InvalidQueueSize);
         }
@@ -99,7 +89,7 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
             c
         };
 
-        let c = Client {
+        let c = ProcessorClient {
             processor_queue: Arc::downgrade(&self.queue),
             client_reply: client_reply
         };
@@ -107,11 +97,11 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
         Ok(c)
     }
 
-    pub fn get_receive_queue(&self) -> &Queue<T> {
+    pub fn get_receive_queue(&self) -> &Queue<I> {
         &*self.queue
     }
 
-    pub fn reply(&self, received_message: T, reply: T, max_wait: Duration) -> Result<bool, FreeRtosError> {
+    pub fn reply<D: DurationTicks>(&self, received_message: I, reply: O, max_wait: D) -> Result<bool, FreeRtosError> {
         if let Some(client_id) = received_message.reply_to_client_id() {            
             let inner = try!(self.inner.lock(max_wait));
             if let Some(client) = inner.clients.iter().flat_map(|ref x| x.1.upgrade().into_iter()).find(|x| x.id == client_id) {
@@ -124,74 +114,93 @@ impl<T> Processor<T> where T: ReplyableMessage + Copy {
     }
 }
 
-impl<T> Processor<Message<T>> where T: Copy {
-    pub fn reply_val(&self, received_message: Message<T>, reply: T, max_wait: Duration) -> Result<bool, FreeRtosError> {
-        self.reply(received_message, Message::reply(reply), max_wait)
+impl<I, O> Processor<InputMessage<I>, O> where I: Copy, O: Copy {
+    pub fn reply_val<D: DurationTicks>(&self, received_message: InputMessage<I>, reply: O, max_wait: D) -> Result<bool, FreeRtosError> {
+        self.reply(received_message, reply, max_wait)
     }
 }
 
-struct ProcessorInner<T> where T: ReplyableMessage + Copy {
-    clients: Vec<(usize, Weak<ClientWithReplyQueue<T>>)>,
+struct ProcessorInner<O> where O: Copy {
+    clients: Vec<(usize, Weak<ClientWithReplyQueue<O>>)>,
     next_client_id: usize
 }
 
-impl<T> ProcessorInner<T> where T: ReplyableMessage +  Copy {
-    fn remove_client_reply(&mut self, client: &ClientWithReplyQueue<T>) {
+impl<O> ProcessorInner<O> where O: Copy {
+    fn remove_client_reply(&mut self, client: &ClientWithReplyQueue<O>) {
         self.clients.retain(|ref x| x.0 != client.id)
     }
 }
 
 
 
-pub struct Client<T, R> where T: ReplyableMessage + Copy {    
-    processor_queue: Weak<Queue<T>>,
-    client_reply: R
+pub struct ProcessorClient<I, C> where I: ReplyableMessage + Copy {    
+    processor_queue: Weak<Queue<I>>,
+    client_reply: C
 }
 
-impl<T, R> Client<T, R> where T: ReplyableMessage + Copy {
-    pub fn send(&self, message: T, max_wait: Duration) -> Result<(), FreeRtosError> {
+impl<I, O> ProcessorClient<I, O> where I: ReplyableMessage + Copy {
+    pub fn send<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<(), FreeRtosError> {
         let processor_queue = try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
         try!(processor_queue.send(message, max_wait));
         Ok(())   
     }
-}
 
-impl<T> Client<Message<T>, ()> where T: Copy {
-    pub fn send_val(&self, val: T, max_wait: Duration) -> Result<(), FreeRtosError> {
-        self.send(Message::request(val), max_wait)
+    pub fn send_from_isr(&self, context: &mut ::isr::InterruptContext, message: I) -> Result<(), FreeRtosError> {
+        let processor_queue = try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
+        processor_queue.send_from_isr(context, message)
     }
 }
 
-impl<T> Client<T, SharedClientWithReplyQueue<T>> where T: ReplyableMessage + Copy {
-    pub fn call(&self, message: T, max_wait: Duration) -> Result<T, FreeRtosError> {
+impl<I> ProcessorClient<InputMessage<I>, ()> where I: Copy {
+    pub fn send_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<(), FreeRtosError> {
+        self.send(InputMessage::request(val), max_wait)
+    }
+
+    pub fn send_val_from_isr(&self, context: &mut ::isr::InterruptContext, val: I) -> Result<(), FreeRtosError> {
+        self.send_from_isr(context, InputMessage::request(val))
+    }
+}
+
+impl<I, O> ProcessorClient<I, SharedClientWithReplyQueue<O>> where I: ReplyableMessage + Copy, O: Copy {
+    pub fn call<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<O, FreeRtosError> {
         try!(self.send(message, max_wait));
         self.client_reply.receive_queue.receive(max_wait)
     }
 
-    pub fn get_receive_queue(&self) -> &Queue<T> {
+    pub fn get_receive_queue(&self) -> &Queue<O> {
         &self.client_reply.receive_queue
     }
 }
 
-impl<T> Client<Message<T>, SharedClientWithReplyQueue<Message<T>>> where T: Copy {
-    pub fn send_val(&self, val: T, max_wait: Duration) -> Result<(), FreeRtosError> {
-        self.send(Message::request(val), max_wait)
+impl<I, O> ProcessorClient<InputMessage<I>, SharedClientWithReplyQueue<O>> where I: Copy, O: Copy {
+    pub fn send_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<(), FreeRtosError> {
+        self.send(InputMessage::request(val), max_wait)
     }
     
-    pub fn call_val(&self, val: T, max_wait: Duration) -> Result<T, FreeRtosError> {
-        let reply = try!(self.call(Message::request_with_reply(val, self), max_wait));        
-        Ok(reply.get_val())
+    pub fn call_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<O, FreeRtosError> {
+        let reply = try!(self.call(InputMessage::request_with_reply(val, self.client_reply.id), max_wait));
+        Ok(reply)
+    }
+}
+
+impl<I, C> Clone for ProcessorClient<I, C> where I: ReplyableMessage + Copy, C: Clone {
+    fn clone(&self) -> Self {
+        ProcessorClient {
+            processor_queue: self.processor_queue.clone(),
+            client_reply: self.client_reply.clone()
+        }
     }
 }
 
 
-pub struct ClientWithReplyQueue<T> where T: ReplyableMessage + Copy {
+
+pub struct ClientWithReplyQueue<O> where O: Copy {
     id: usize,
-    processor_inner: Arc<Mutex<ProcessorInner<T>>>,
-    receive_queue: Queue<T>
+    processor_inner: Arc<Mutex<ProcessorInner<O>>>,
+    receive_queue: Queue<O>
 }
 
-impl<T> Drop for ClientWithReplyQueue<T> where T: ReplyableMessage + Copy {
+impl<O> Drop for ClientWithReplyQueue<O> where O: Copy {
     fn drop(&mut self) {
         if let Ok(mut p) = self.processor_inner.lock(Duration::ms(1000)) {
             p.remove_client_reply(&self);

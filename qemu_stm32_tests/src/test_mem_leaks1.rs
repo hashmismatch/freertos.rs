@@ -34,7 +34,7 @@ pub fn test_mem_leaks1() -> i8 {
 
 		// recursive mutexes
 		for i in 0..100 {
-			let m = Mutex::new_recursive(0).unwrap();
+			let m = RecursiveMutex::new(0).unwrap();
 			let mut v = m.lock(Duration::ms(50)).unwrap();
 			*v += 1;
 		}
@@ -136,8 +136,7 @@ pub fn test_mem_leaks1() -> i8 {
 		
 		// timers		
 		{
-			let timer = Timer::new()
-                .set_period(Duration::ms(50))
+			let timer = Timer::new(Duration::ms(50))
                 .set_auto_reload(false)
                 .create(|mut timer| {                    
                     let a = 1;
@@ -159,7 +158,7 @@ pub fn test_mem_leaks1() -> i8 {
 				Shutdown
 			}
 
-			let processor: Processor<Message<ProcessorMsg>> = Processor::new(5).unwrap();
+			let processor: Processor<InputMessage<ProcessorMsg>, usize> = Processor::new(5).unwrap();
 			let client_1 = processor.new_client().unwrap();
 			let client_2 = processor.new_client_with_reply(5, Duration::ms(5)).unwrap();
 			let client_3 = processor.new_client().unwrap();
@@ -171,7 +170,7 @@ pub fn test_mem_leaks1() -> i8 {
 						match m.get_val() {
 							ProcessorMsg::Val(v) => {
 								let processed = v + 1;
-								let r = processor.reply_val(m, ProcessorMsg::Val(processed), Duration::ms(10)).unwrap();
+								let r = processor.reply_val(m, processed, Duration::ms(10)).unwrap();
 							},
 							ProcessorMsg::Shutdown => { break; }
 						}
