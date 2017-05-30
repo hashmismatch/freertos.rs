@@ -88,6 +88,7 @@ pub mod test_mem_leaks1;
 pub mod test_isr_timer4_queue;
 pub mod test_isr_timer4_notify;
 pub mod test_sample1;
+pub mod test_stats;
 pub mod test_processor;
 pub mod test_timers;
 
@@ -119,4 +120,15 @@ pub extern fn __rust_deallocate(ptr: *mut u8, old_size: usize, align: usize) {
 #[no_mangle]
 pub extern fn __rust_reallocate(ptr: *mut u8, old_size: usize, size: usize, align: usize) -> *mut u8 {
 	unsafe { pvPortRealloc(ptr as *mut c_void, size as u32) as *mut u8 }
+}
+
+#[no_mangle]
+pub extern fn __rust_allocate_zeroed(size: usize, align: usize) -> *mut u8 {
+	unsafe { 
+		let ptr = __rust_allocate(size, align);
+		if !ptr.is_null() {
+			core::ptr::write_bytes(ptr, 0, size);
+		}
+		ptr
+	}
 }

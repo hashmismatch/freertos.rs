@@ -104,7 +104,7 @@ impl<R: Debug> ComputeTask<R> {
     }
 
     /// Wait until the task computes its result. Otherwise, returns a timeout.
-    pub fn wait_for_result(&mut self, max_wait: Duration) -> Result<(), FreeRtosError> {
+    pub fn wait_for_result<D: DurationTicks>(&mut self, max_wait: D) -> Result<(), FreeRtosError> {
         if self.finished == true {
             Ok(())
         } else {
@@ -119,7 +119,7 @@ impl<R: Debug> ComputeTask<R> {
     }
 
     /// Consume the task and unwrap the computed return value.
-    pub fn into_result(mut self, max_wait: Duration) -> Result<R, FreeRtosError> {
+    pub fn into_result<D: DurationTicks>(mut self, max_wait: D) -> Result<R, FreeRtosError> {
         try!(self.wait_for_result(max_wait));
 
         if self.finished != true {

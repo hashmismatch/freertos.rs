@@ -9,6 +9,8 @@ extern {
 	pub fn freertos_rs_vTaskDelay(xTicksToDelay: FreeRtosTickType);
 	pub fn freertos_rs_get_portTICK_PERIOD_MS() -> FreeRtosTickType;
 
+	pub fn freertos_rs_get_number_of_tasks() -> FreeRtosUBaseType;
+
 	pub fn freertos_rs_xTaskGetTickCount() -> FreeRtosTickType;
 
 	pub fn freertos_rs_create_recursive_mutex() -> FreeRtosQueueHandle;
@@ -46,8 +48,10 @@ extern {
 	pub fn freertos_rs_spawn_task(f: extern fn(FreeRtosMutVoidPtr) -> FreeRtosMutVoidPtr, value: FreeRtosMutVoidPtr, name: FreeRtosCharPtr, name_len: u8, stack_size: u16, priority: FreeRtosUBaseType, task_handle: FreeRtosMutTaskHandle) -> FreeRtosUBaseType;
 	pub fn freertos_rs_delete_task(task: FreeRtosTaskHandle);
 	pub fn freertos_rs_task_get_name(task: FreeRtosTaskHandle) -> FreeRtosCharPtr;
+	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType;
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle;
+	pub fn freertos_rs_get_system_state(tasks: *mut FreeRtosTaskStatusFfi, tasks_len: FreeRtosUBaseType, total_run_time: *mut u32) -> FreeRtosUBaseType;
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType;
 
@@ -57,6 +61,9 @@ extern {
 	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType;
 	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType;
 	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr;
+
+	pub fn freertos_rs_enter_critical();
+	pub fn freertos_rs_exit_critical();
 }
 
 // mocks for testing
@@ -69,6 +76,7 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_vTaskDelayUntil(pxPreviousWakeTime: *mut FreeRtosTickType, xTimeIncrement: FreeRtosTickType) { }
 	pub fn freertos_rs_vTaskDelay(xTicksToDelay: FreeRtosTickType) { }
 	pub fn freertos_rs_get_portTICK_PERIOD_MS() -> FreeRtosTickType { 1 }
+	pub fn freertos_rs_get_number_of_tasks() -> FreeRtosUBaseType { 0 }
 
 	pub fn freertos_rs_xTaskGetTickCount() -> FreeRtosTickType { 1 }
 
@@ -107,8 +115,10 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_spawn_task(f: extern fn(FreeRtosMutVoidPtr) -> FreeRtosMutVoidPtr, value: FreeRtosMutVoidPtr, name: FreeRtosCharPtr, name_len: u8, stack_size: u16, priority: FreeRtosUBaseType, task_handle: FreeRtosMutTaskHandle) -> FreeRtosUBaseType { 0 }
 	pub fn freertos_rs_delete_task(task: FreeRtosTaskHandle) { }
 	pub fn freertos_rs_task_get_name(task: FreeRtosTaskHandle) -> FreeRtosCharPtr { 0 as _ }
+	pub fn freertos_rs_get_stack_high_water_mark(task: FreeRtosTaskHandle) -> FreeRtosBaseType { 0 }
 
 	pub fn freertos_rs_get_current_task() -> FreeRtosTaskHandle { 1 as _ }
+	pub fn freertos_rs_get_system_state(tasks: *mut FreeRtosTaskStatusFfi, tasks_len: FreeRtosUBaseType, total_run_time: *mut u32) -> FreeRtosUBaseType { 0 }
 
 	pub fn freertos_rs_max_wait() -> FreeRtosTickType { 1000 }
 
@@ -118,6 +128,9 @@ pub mod freertos_rs_mocked {
 	pub fn freertos_rs_timer_delete(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType) -> FreeRtosBaseType { 0 }
 	pub fn freertos_rs_timer_change_period(timer: FreeRtosTimerHandle, block_time: FreeRtosTickType, new_period: FreeRtosTickType) -> FreeRtosBaseType { 0 }
 	pub fn freertos_rs_timer_get_id(timer: FreeRtosTimerHandle) -> FreeRtosVoidPtr { 0 as _ }
+
+	pub fn freertos_rs_enter_critical() { }
+	pub fn freertos_rs_exit_critical() { }
 }
 
 #[cfg(not(target_os="none"))]

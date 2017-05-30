@@ -8,6 +8,7 @@ use isr::*;
 unsafe impl Send for Task {}
 
 /// Handle for a FreeRTOS task
+#[derive(Debug)]
 pub struct Task {
     task_handle: FreeRtosTaskHandle,
 }
@@ -224,15 +225,15 @@ impl Task {
     }
 
     /// Take the notification and either clear the notification value or decrement it by one.
-    pub fn take_notification(&self, clear: bool, wait_for: Duration) -> u32 {
+    pub fn take_notification<D: DurationTicks>(&self, clear: bool, wait_for: D) -> u32 {
         unsafe { freertos_rs_task_notify_take(if clear { 1 } else { 0 }, wait_for.to_ticks()) }
     }
 
     /// Wait for a notification to be posted.
-    pub fn wait_for_notification(&self,
+    pub fn wait_for_notification<D: DurationTicks>(&self,
                                  clear_bits_enter: u32,
                                  clear_bits_exit: u32,
-                                 wait_for: Duration)
+                                 wait_for: D)
                                  -> Result<u32, FreeRtosError> {
         unsafe {
             let mut val = 0;
@@ -248,18 +249,95 @@ impl Task {
             }
         }
     }
+
+    /// Get the minimum amount of stack that was ever left on this task.
+    pub fn get_stack_high_water_mark(&self) -> u32 {
+        unsafe {
+            freertos_rs_get_stack_high_water_mark(self.task_handle) as u32
+        }
+    }
 }
 
 /// Helper methods to be performed on the task that is currently executing.
 pub struct CurrentTask;
 impl CurrentTask {
     /// Delay the execution of the current task.
-    pub fn delay(delay: Duration) {
+    pub fn delay<D: DurationTicks>(delay: D) {
         unsafe {
             freertos_rs_vTaskDelay(delay.to_ticks());
         }
     }
+
+    /// Get the minimum amount of stack that was ever left on the current task.
+    pub fn get_stack_high_water_mark() -> u32 {
+        unsafe {
+            freertos_rs_get_stack_high_water_mark(0 as FreeRtosTaskHandle) as u32
+        }
+    }
 }
+
+#[derive(Debug)]
+pub struct FreeRtosSchedulerState {
+    pub tasks: Vec<FreeRtosTaskStatus>,
+    pub total_run_time: u32
+}
+
+impl fmt::Display for FreeRtosSchedulerState {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {        
+        try!(fmt.write_str("FreeRTOS tasks\r\n"));
+
+        write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
+            id = "ID",
+            name = "Name",
+            state = "State",
+            priority = "Priority",
+            stack = "Stack left",
+            cpu_abs = "CPU",
+            cpu_rel = "%"
+            );
+
+        for task in &self.tasks {
+            write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
+            id = task.task_number,
+            name = task.name,
+            state = format!("{:?}", task.task_state),
+            priority = task.current_priority.0,
+            stack = task.stack_high_water_mark,
+            cpu_abs = task.run_time_counter,
+            cpu_rel = if self.total_run_time > 0 && task.run_time_counter <= self.total_run_time {
+                let p = (((task.run_time_counter as u64) * 100) / self.total_run_time as u64) as u32;
+                let ps = if p == 0 && task.run_time_counter > 0 {
+                    "<1".to_string()
+                } else {
+                    p.to_string()
+                };
+                format!("{: >3}%", ps)
+            } else {
+                "-".to_string()
+            }
+            );
+        }
+        
+        if self.total_run_time > 0 {
+            write!(fmt, "Total run time: {}\r\n", self.total_run_time);
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct FreeRtosTaskStatus {
+    pub task: Task,
+    pub name: String,
+    pub task_number: FreeRtosUBaseType,
+    pub task_state: FreeRtosTaskState,
+    pub current_priority: TaskPriority,
+    pub base_priority: TaskPriority,
+    pub run_time_counter: FreeRtosUnsignedLong,
+    pub stack_high_water_mark: FreeRtosUnsignedShort
+}
+
 
 pub struct FreeRtosUtils;
 impl FreeRtosUtils {
@@ -269,5 +347,38 @@ impl FreeRtosUtils {
 
     pub fn get_tick_count_duration() -> Duration {
         Duration::ticks(Self::get_tick_count())
+    }
+
+    pub fn get_number_of_tasks() -> usize {
+        unsafe { freertos_rs_get_number_of_tasks() as usize }
+    }
+
+    pub fn get_all_tasks(tasks_len: Option<usize>) -> FreeRtosSchedulerState {        
+        let tasks_len = tasks_len.unwrap_or(Self::get_number_of_tasks());
+        let mut tasks = Vec::with_capacity(tasks_len as usize);
+        let mut total_run_time = 0;
+        
+        unsafe {            
+            let filled = freertos_rs_get_system_state(tasks.as_mut_ptr(), tasks_len as FreeRtosUBaseType, &mut total_run_time);
+            tasks.set_len(filled as usize);
+        }
+
+        let tasks = tasks.into_iter().map(|t| {
+            FreeRtosTaskStatus {
+                task: Task { task_handle: t.handle },
+                name: unsafe { str_from_c_string(t.task_name) }.unwrap_or_else(|_| String::from("?")),
+                task_number: t.task_number,
+                task_state: t.task_state,
+                current_priority: TaskPriority(t.current_priority as u8),
+                base_priority: TaskPriority(t.base_priority as u8),
+                run_time_counter: t.run_time_counter,
+                stack_high_water_mark: t.stack_high_water_mark
+            }
+        }).collect();
+
+        FreeRtosSchedulerState {
+            tasks: tasks,
+            total_run_time: total_run_time
+        }
     }
 }
