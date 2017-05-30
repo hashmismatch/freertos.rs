@@ -144,11 +144,20 @@ impl<I, O> ProcessorClient<I, O> where I: ReplyableMessage + Copy {
         try!(processor_queue.send(message, max_wait));
         Ok(())   
     }
+
+    pub fn send_from_isr(&self, context: &mut ::isr::InterruptContext, message: I) -> Result<(), FreeRtosError> {
+        let processor_queue = try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
+        processor_queue.send_from_isr(context, message)
+    }
 }
 
 impl<I> ProcessorClient<InputMessage<I>, ()> where I: Copy {
     pub fn send_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<(), FreeRtosError> {
         self.send(InputMessage::request(val), max_wait)
+    }
+
+    pub fn send_val_from_isr(&self, context: &mut ::isr::InterruptContext, val: I) -> Result<(), FreeRtosError> {
+        self.send_from_isr(context, InputMessage::request(val))
     }
 }
 
