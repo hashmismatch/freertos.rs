@@ -2,6 +2,10 @@ use super::*;
 use prelude::v1::*;
 
 use freertos_rs::*;
+use freertos_rs::patterns::compute_task::*;
+use freertos_rs::patterns::processor::*;
+use freertos_rs::patterns::pub_sub::*;
+
 
 #[no_mangle]
 pub fn test_mem_leaks1() -> i8 {
@@ -72,6 +76,9 @@ pub fn test_mem_leaks1() -> i8 {
 			q.receive(Duration::ms(100)).unwrap();
 		}
 
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #1");
+
 		// compute tasks
 		{
 			let n = 12;
@@ -99,6 +106,11 @@ pub fn test_mem_leaks1() -> i8 {
 
 		}
 
+		CurrentTask::delay(Duration::ms(200));
+
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #2");
+
 		// pub sub
 		{
 			let w = Duration::ms(1);
@@ -112,12 +124,15 @@ pub fn test_mem_leaks1() -> i8 {
 			
 			assert_eq!("A", sub1.receive(w).unwrap());
 			assert_eq!("B", sub1.receive(w).unwrap());
-			assert_eq!(Result::Err(FreeRtosError::Timeout), sub1.receive(w));
+			assert_eq!(Result::Err(FreeRtosError::QueueReceiveTimeout), sub1.receive(w));
 			drop(sub1);
 
 			assert_eq!("B", sub2.receive(w).unwrap());
-			assert_eq!(Result::Err(FreeRtosError::Timeout), sub2.receive(w));
+			assert_eq!(Result::Err(FreeRtosError::QueueReceiveTimeout), sub2.receive(w));
 		}
+
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #3");
 		
 		// timers		
 		{
@@ -133,10 +148,55 @@ pub fn test_mem_leaks1() -> i8 {
 			CurrentTask::delay(Duration::ms(100))
 		}
 
-		CurrentTask::delay(Duration::ms(100));		
+		end_memory_usage = heap_allocated_memory();
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #4");
+
+		// processor
+		{
+			#[derive(PartialEq, Copy, Clone, Debug)]
+			enum ProcessorMsg {
+				Val(usize),
+				Shutdown
+			}
+
+			let processor: Processor<Message<ProcessorMsg>> = Processor::new(5).unwrap();
+			let client_1 = processor.new_client().unwrap();
+			let client_2 = processor.new_client_with_reply(5, Duration::ms(5)).unwrap();
+			let client_3 = processor.new_client().unwrap();
+			let client_4 = processor.new_client_with_reply(15, Duration::ms(5)).unwrap();
+
+			let processor_task = Task::new().name("processor").start(move || {
+				loop {
+					if let Ok(m) = processor.get_receive_queue().receive(Duration::ms(10)) {
+						match m.get_val() {
+							ProcessorMsg::Val(v) => {
+								let processed = v + 1;
+								let r = processor.reply_val(m, ProcessorMsg::Val(processed), Duration::ms(10)).unwrap();
+							},
+							ProcessorMsg::Shutdown => { break; }
+						}
+					}
+				}
+				drop(processor);
+				debug_print("Processor shutting down");
+			}).unwrap();
+			
+			client_1.send_val(ProcessorMsg::Val(5), Duration::ms(5));
+			client_2.send_val(ProcessorMsg::Val(6), Duration::ms(5));
+			client_2.send_val(ProcessorMsg::Val(7), Duration::ms(5));
+			client_2.call_val(ProcessorMsg::Val(8), Duration::ms(5));
+			
+			client_3.send_val(ProcessorMsg::Shutdown, Duration::ms(5));
+
+			CurrentTask::delay(Duration::ms(50));
+						
+			assert_eq!(Err(FreeRtosError::ProcessorHasShutDown), client_4.call_val(ProcessorMsg::Val(2), Duration::ms(5)));
+		}
+
+		CurrentTask::delay(Duration::ms(300));		
 
 		end_memory_usage = heap_allocated_memory();
-		assert_eq!(start_memory_usage, end_memory_usage);
+		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage final");
 
 		exit_test(0);
 	}).unwrap();
