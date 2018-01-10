@@ -14,9 +14,8 @@ pub use core::cell::UnsafeCell;
 pub use alloc::rc::Rc;
 pub use alloc::boxed::{Box, FnBox};
 pub use alloc::arc::Arc;
-
-pub use collections::vec::Vec;
-pub use collections::string::*;
+pub use alloc::vec::Vec;
+pub use alloc::string::*;
 
 
 

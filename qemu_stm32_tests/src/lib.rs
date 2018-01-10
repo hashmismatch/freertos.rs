@@ -2,18 +2,15 @@
 #![feature(lang_items)]
 
 #![feature(alloc)]
-#![feature(collections)]
 #![feature(fnbox)]
 
-#[lang = "eh_personality"] extern fn eh_personality() {}
 #[lang = "eh_unwind_resume"] extern fn eh_unwind_resume() {}
 
-#[lang = "panic_fmt"]
 #[inline(never)]
 extern fn panic_fmt(msg: core::fmt::Arguments, file_line: &(&'static str, u32)) -> ! {
 	use core::fmt;
 	use core::fmt::Write;
-	use collections::string::*;
+	use alloc::string::*;
 
 	debug_print("Panicked!");
 	
@@ -30,8 +27,6 @@ extern fn panic_fmt(msg: core::fmt::Arguments, file_line: &(&'static str, u32)) 
 
 #[macro_use]
 extern crate alloc;
-#[macro_use]
-extern crate collections;
 
 extern crate freertos_rs;
 
