@@ -234,19 +234,20 @@ impl Task {
                                  clear_bits_enter: u32,
                                  clear_bits_exit: u32,
                                  wait_for: D)
-                                 -> Result<u32, FreeRtosError> {
-        unsafe {
-            let mut val = 0;
-            let r = freertos_rs_task_notify_wait(clear_bits_enter,
-                                                 clear_bits_exit,
-                                                 &mut val as *mut _,
-                                                 wait_for.to_ticks());
+                                 -> Result<u32, FreeRtosError>
+    {        
+        let mut val = 0;
+        let r = unsafe { 
+            freertos_rs_task_notify_wait(clear_bits_enter,
+                                         clear_bits_exit,
+                                         &mut val as *mut _,
+                                         wait_for.to_ticks())
+        };
 
-            if r == 0 {
-                Ok(val)
-            } else {
-                Err(FreeRtosError::Timeout)
-            }
+        if r == 0 {
+            Ok(val)
+        } else {
+            Err(FreeRtosError::Timeout)
         }
     }
 
@@ -294,7 +295,7 @@ impl fmt::Display for FreeRtosSchedulerState {
             stack = "Stack left",
             cpu_abs = "CPU",
             cpu_rel = "%"
-            );
+            )?;
 
         for task in &self.tasks {
             write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
@@ -315,11 +316,11 @@ impl fmt::Display for FreeRtosSchedulerState {
             } else {
                 "-".to_string()
             }
-            );
+            )?;
         }
         
         if self.total_run_time > 0 {
-            write!(fmt, "Total run time: {}\r\n", self.total_run_time);
+            write!(fmt, "Total run time: {}\r\n", self.total_run_time)?;
         }
 
         Ok(())
