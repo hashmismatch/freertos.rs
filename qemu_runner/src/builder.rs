@@ -91,6 +91,7 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 	            .arg("--target")
 	            .arg(&options.target_arch)
 	            .env("RUSTFLAGS", "--emit obj")
+				.env("RUST_TARGET_PATH", &options.tests_project_path)
 	            .stdout(Stdio::inherit())
 				.stderr(Stdio::inherit())
 	            .output();
