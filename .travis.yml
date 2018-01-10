@@ -3,7 +3,7 @@ dist: trusty
 
 language: rust
 rust:
-    - nightly 
+  - nightly 
 
 cache:
   directories:

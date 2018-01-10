@@ -2,10 +2,8 @@
 #![feature(lang_items)]
 
 #![feature(alloc)]
-#![feature(collections)]
 #![feature(fnbox)]
 
-#[lang = "eh_personality"] extern fn eh_personality() {}
 #[lang = "eh_unwind_resume"] extern fn eh_unwind_resume() {}
 
 #[lang = "panic_fmt"]
@@ -13,7 +11,7 @@
 extern fn panic_fmt(msg: core::fmt::Arguments, file_line: &(&'static str, u32)) -> ! {
 	use core::fmt;
 	use core::fmt::Write;
-	use collections::string::*;
+	use alloc::string::*;
 
 	debug_print("Panicked!");
 	
@@ -30,8 +28,6 @@ extern fn panic_fmt(msg: core::fmt::Arguments, file_line: &(&'static str, u32)) 
 
 #[macro_use]
 extern crate alloc;
-#[macro_use]
-extern crate collections;
 
 extern crate freertos_rs;
 
@@ -78,6 +74,7 @@ pub fn start_timer4_50ms() {
 }
 
 
+pub mod freertos_alloc;
 mod prelude;
 mod utils;
 
@@ -95,40 +92,3 @@ pub mod test_timers;
 
 
 
-#[repr(u8)]
-enum c_void {
-    __variant1,
-    __variant2,
-}
-
-extern {
-    fn pvPortMalloc(size: u32) -> *mut c_void;
-    fn pvPortRealloc(p: *mut c_void, size: u32) -> *mut c_void;
-    fn vPortFree(p: *mut c_void);	
-}
-
-#[no_mangle]
-pub extern fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
-	unsafe { pvPortMalloc(size as u32) as *mut u8 }
-}
-
-#[no_mangle]
-pub extern fn __rust_deallocate(ptr: *mut u8, old_size: usize, align: usize) {
-	unsafe { vPortFree(ptr as *mut c_void) }
-}
-
-#[no_mangle]
-pub extern fn __rust_reallocate(ptr: *mut u8, old_size: usize, size: usize, align: usize) -> *mut u8 {
-	unsafe { pvPortRealloc(ptr as *mut c_void, size as u32) as *mut u8 }
-}
-
-#[no_mangle]
-pub extern fn __rust_allocate_zeroed(size: usize, align: usize) -> *mut u8 {
-	unsafe { 
-		let ptr = __rust_allocate(size, align);
-		if !ptr.is_null() {
-			core::ptr::write_bytes(ptr, 0, size);
-		}
-		ptr
-	}
-}

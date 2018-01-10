@@ -83,6 +83,13 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 	let xargo_path = find_xargo_path();
 	let xargo_path = xargo_path.expect("Xargo not found! Install it with 'cargo install xargo'.");
 
+	let build_proj_root = {
+		let p = Path::new(&options.tests_project_path);
+		let mut absolute_path = ::std::env::current_dir().expect("Can't find current dir?");
+		absolute_path.push(p);
+		p.canonicalize().expect("Error canonicalizing")
+	};
+
 	// cross-build the tests library
 	let xargo_build = Command::new(xargo_path)
 	            .current_dir(&options.tests_project_path)
@@ -90,7 +97,9 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 	            .arg("--verbose")
 	            .arg("--target")
 	            .arg(&options.target_arch)
-	            .env("RUSTFLAGS", "--emit obj")
+				.env("CARGO_INCREMENTAL", "")
+	            .env("RUSTFLAGS", "--emit=obj")
+				.env("RUST_TARGET_PATH", &build_proj_root.to_str().expect("Missing path to proj root for target path?"))
 	            .stdout(Stdio::inherit())
 				.stderr(Stdio::inherit())
 	            .output();
