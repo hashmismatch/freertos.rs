@@ -1,9 +1,10 @@
 # freertos.rs
 
-This library is a Rust interface for the [FreeRTOS](http://www.freertos.org/) API. Currently, it requires nightly Rust.
+A Rust wrapper for [FreeRTOS](http://www.freertos.org/). Nightly Rust is required.
 
-It is assumed that it will be used as a library in the firmware project for your embedded platform, with a C compiler providing the base system.
-This library uses a C shim to communicate with FreeRTOS's APIs. Dynamic memory allocation must be provided.
+The main entry point for your embedded executable should be provided by your platform's preffered compiler toolchain. For example, for STM microcontrollers, a project generated using STM32CubeMX and compiled using GCC could be used as a starting point. Additional shims between C and Rust provide access to drivers, hardware and FreeRTOS.
+
+This library uses a C shim to communicate with FreeRTOS's API. Dynamic memory allocation is required at the moment.
 
 [![Build Status](https://travis-ci.org/hashmismatch/freertos.rs.svg?branch=master)](https://travis-ci.org/hashmismatch/freertos.rs)
 
@@ -17,10 +18,10 @@ First, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-freertos_rs = "0.1"
+freertos_rs = "0.2"
 ```
 
-Next, add this to your crate:
+Next, add this to your project:
 
 ```rust
 extern crate freertos_rs;
