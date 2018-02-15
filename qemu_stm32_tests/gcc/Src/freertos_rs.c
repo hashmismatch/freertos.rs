@@ -164,7 +164,7 @@ UBaseType_t freertos_rs_give_semaphore_isr(QueueHandle_t semaphore, BaseType_t* 
 
 
 UBaseType_t freertos_rs_spawn_task(TaskFunction_t entry_point, void* pvParameters, const char * const name, uint8_t name_len, uint16_t stack_size, UBaseType_t priority, TaskHandle_t* task_handle) {
-	uint8_t c_name[configMAX_TASK_NAME_LEN] = {0};
+	char c_name[configMAX_TASK_NAME_LEN] = {0};
 	for (int i = 0; i < name_len; i++) {
 		c_name[i] = name[i];
 
@@ -200,7 +200,7 @@ QueueHandle_t freertos_rs_queue_create(UBaseType_t queue_length, UBaseType_t ite
 	return xQueueCreate(queue_length, item_size);
 }
 
-void freertos_rs_queue_delete(UBaseType_t queue) {
+void freertos_rs_queue_delete(QueueHandle_t queue) {
 	vQueueDelete(queue);
 }
 
@@ -214,8 +214,6 @@ UBaseType_t freertos_rs_queue_send(QueueHandle_t queue, void* item, TickType_t m
 }
 
 UBaseType_t freertos_rs_queue_send_isr(QueueHandle_t queue, void* item, BaseType_t* xHigherPriorityTaskWoken) {
-	UBaseType_t ret = 1;
-	
 	if (xQueueSendFromISR(queue, item, xHigherPriorityTaskWoken) == pdTRUE) {
 		return 0;
 	}
@@ -298,13 +296,12 @@ TaskHandle_t freertos_rs_get_current_task() {
 }
 #endif
 
-
 #if (configUSE_TIMERS == 1)
 
 TimerHandle_t freertos_rs_timer_create(const char * const name, uint8_t name_len, const TickType_t period,
 		uint8_t auto_reload, void * const timer_id, TimerCallbackFunction_t callback)
 {
-	uint8_t c_name[configMAX_TASK_NAME_LEN] = {0};
+	char c_name[configMAX_TASK_NAME_LEN] = {0};
 	for (int i = 0; i < name_len; i++) {
 		c_name[i] = name[i];
 
