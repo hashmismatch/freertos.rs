@@ -22,12 +22,12 @@ impl ComputeTaskBuilder for TaskBuilder {
     {
 
         let (task, result, status) = {
-            let result = Arc::new(r#try!(Mutex::new(None)));
-            let status = Arc::new(r#try!(Queue::new(1)));
+            let result = Arc::new(Mutex::new(None)?);
+            let status = Arc::new(Queue::new(1)?);
 
             let task_result = result.clone();
             let task_status = status.clone();
-            let task = r#try!(self.start(move || {
+            let task = self.start(move || {
                 {
                     let mut lock = task_result.lock(Duration::infinite()).unwrap();
                     let r = func();
@@ -36,7 +36,7 @@ impl ComputeTaskBuilder for TaskBuilder {
                 // release our reference to the mutex, so it can be deconstructed
                 drop(task_result);
                 task_status.send(ComputeTaskStatus::Finished, Duration::infinite()).unwrap();
-            }));
+            })?;
 
             (task, result, status)
         };
@@ -120,7 +120,7 @@ impl<R: Debug> ComputeTask<R> {
 
     /// Consume the task and unwrap the computed return value.
     pub fn into_result<D: DurationTicks>(mut self, max_wait: D) -> Result<R, FreeRtosError> {
-        r#try!(self.wait_for_result(max_wait));
+        self.wait_for_result(max_wait)?;
 
         if self.finished != true {
             panic!("ComputeTask should be finished!");

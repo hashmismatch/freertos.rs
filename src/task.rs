@@ -285,7 +285,7 @@ pub struct FreeRtosSchedulerState {
 
 impl fmt::Display for FreeRtosSchedulerState {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {        
-        r#try!(fmt.write_str("FreeRTOS tasks\r\n"));
+        fmt.write_str("FreeRTOS tasks\r\n")?;
 
         write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
             id = "ID",

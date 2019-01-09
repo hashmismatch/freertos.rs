@@ -49,9 +49,9 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
             clients: Vec::new(), 
             next_client_id: 1
         };        
-        let p = Arc::new(r#try!(Mutex::new(p)));
+        let p = Arc::new(Mutex::new(p)?);
         let p = Processor {
-            queue: Arc::new(r#try!(Queue::new(queue_size))),
+            queue: Arc::new(Queue::new(queue_size)?),
             inner: p
         };
         Ok(p)
@@ -73,12 +73,12 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
         }
 
         let client_reply = {
-            let mut processor = r#try!(self.inner.lock(max_wait));
+            let mut processor = self.inner.lock(max_wait)?;
 
             let c = ClientWithReplyQueue {
                 id: processor.next_client_id,
                 processor_inner: self.inner.clone(),
-                receive_queue: r#try!(Queue::new(client_receive_queue_size))
+                receive_queue: Queue::new(client_receive_queue_size)?
             };            
 
             let c = Arc::new(c);
@@ -103,9 +103,9 @@ impl<I, O> Processor<I, O> where I: ReplyableMessage + Copy, O: Copy {
 
     pub fn reply<D: DurationTicks>(&self, received_message: I, reply: O, max_wait: D) -> Result<bool, FreeRtosError> {
         if let Some(client_id) = received_message.reply_to_client_id() {            
-            let inner = r#try!(self.inner.lock(max_wait));
+            let inner = self.inner.lock(max_wait)?;
             if let Some(client) = inner.clients.iter().flat_map(|ref x| x.1.upgrade().into_iter()).find(|x| x.id == client_id) {
-                r#try!(client.receive_queue.send(reply, max_wait));
+                client.receive_queue.send(reply, max_wait)?;
                 return Ok(true);
             }
         }
@@ -140,13 +140,13 @@ pub struct ProcessorClient<I, C> where I: ReplyableMessage + Copy {
 
 impl<I, O> ProcessorClient<I, O> where I: ReplyableMessage + Copy {
     pub fn send<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<(), FreeRtosError> {
-        let processor_queue = r#try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
-        r#try!(processor_queue.send(message, max_wait));
+        let processor_queue = self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown)?;
+        processor_queue.send(message, max_wait)?;
         Ok(())   
     }
 
     pub fn send_from_isr(&self, context: &mut crate::isr::InterruptContext, message: I) -> Result<(), FreeRtosError> {
-        let processor_queue = r#try!(self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown));
+        let processor_queue = self.processor_queue.upgrade().ok_or(FreeRtosError::ProcessorHasShutDown)?;
         processor_queue.send_from_isr(context, message)
     }
 }
@@ -163,7 +163,7 @@ impl<I> ProcessorClient<InputMessage<I>, ()> where I: Copy {
 
 impl<I, O> ProcessorClient<I, SharedClientWithReplyQueue<O>> where I: ReplyableMessage + Copy, O: Copy {
     pub fn call<D: DurationTicks>(&self, message: I, max_wait: D) -> Result<O, FreeRtosError> {
-        r#try!(self.send(message, max_wait));
+        self.send(message, max_wait)?;
         self.client_reply.receive_queue.receive(max_wait)
     }
 
@@ -178,7 +178,7 @@ impl<I, O> ProcessorClient<InputMessage<I>, SharedClientWithReplyQueue<O>> where
     }
     
     pub fn call_val<D: DurationTicks>(&self, val: I, max_wait: D) -> Result<O, FreeRtosError> {
-        let reply = r#try!(self.call(InputMessage::request_with_reply(val, self.client_reply.id), max_wait));
+        let reply = self.call(InputMessage::request_with_reply(val, self.client_reply.id), max_wait)?;
         Ok(reply)
     }
 }
