@@ -1,8 +1,8 @@
-use prelude::v1::*;
-use base::*;
-use shim::*;
-use units::*;
-use isr::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::shim::*;
+use crate::units::*;
+use crate::isr::*;
 
 unsafe impl<T: Sized + Copy> Send for Queue<T> {}
 unsafe impl<T: Sized + Copy> Sync for Queue<T> {}

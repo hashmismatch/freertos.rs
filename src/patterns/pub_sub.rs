@@ -1,8 +1,8 @@
-use prelude::v1::*;
-use base::*;
-use mutex::*;
-use queue::*;
-use units::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::mutex::*;
+use crate::queue::*;
+use crate::units::*;
 
 
 /// A pub-sub queue. An item sent to the publisher is sent to every subscriber.
@@ -23,7 +23,7 @@ impl<T: Sized + Copy> QueuePublisher<T> {
             queue_next_id: 1,
         };
 
-        Ok(QueuePublisher { inner: Arc::new(try!(Mutex::new(inner))) })
+        Ok(QueuePublisher { inner: Arc::new(r#try!(Mutex::new(inner))) })
     }
 
     /// Send an item to every subscriber. Returns the number of
@@ -47,9 +47,9 @@ impl<T: Sized + Copy> QueuePublisher<T> {
                      max_size: usize,
                      create_max_wait: D)
                      -> Result<QueueSubscriber<T>, FreeRtosError> {
-        let mut inner = try!(self.inner.lock(create_max_wait));
+        let mut inner = r#try!(self.inner.lock(create_max_wait));
 
-        let queue = try!(Queue::new(max_size));
+        let queue = r#try!(Queue::new(max_size));
 
         let id = inner.queue_next_id;
         inner.queue_next_id += 1;

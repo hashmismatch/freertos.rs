@@ -1,4 +1,4 @@
-use base::*;
+use crate::base::*;
 
 
 #[cfg(target_os="none")]
@@ -69,7 +69,7 @@ extern {
 // mocks for testing
 #[cfg(not(target_os="none"))]
 pub mod freertos_rs_mocked {
-	use base::*;
+	use crate::base::*;
 
 	pub fn freertos_rs_sizeof(_type: u8) -> u8 { 0 }
 
@@ -134,4 +134,4 @@ pub mod freertos_rs_mocked {
 }
 
 #[cfg(not(target_os="none"))]
-pub use shim::freertos_rs_mocked::*;
+pub use crate::shim::freertos_rs_mocked::*;

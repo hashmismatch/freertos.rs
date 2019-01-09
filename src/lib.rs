@@ -77,15 +77,15 @@ mod critical;
 
 pub mod patterns;
 
-pub use base::FreeRtosError;
-pub use task::*;
-pub use queue::*;
-pub use units::*;
-pub use mutex::*;
-pub use semaphore::*;
-pub use isr::*;
-pub use delays::*;
-pub use timers::*;
-pub use critical::*;
+pub use crate::base::FreeRtosError;
+pub use crate::task::*;
+pub use crate::queue::*;
+pub use crate::units::*;
+pub use crate::mutex::*;
+pub use crate::semaphore::*;
+pub use crate::isr::*;
+pub use crate::delays::*;
+pub use crate::timers::*;
+pub use crate::critical::*;
 
-pub use utils::shim_sanity_check;
+pub use crate::utils::shim_sanity_check;

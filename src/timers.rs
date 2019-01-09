@@ -1,10 +1,10 @@
-use prelude::v1::*;
-use base::*;
-use task::*;
-use shim::*;
-use mutex::*;
-use queue::*;
-use units::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::task::*;
+use crate::shim::*;
+use crate::mutex::*;
+use crate::queue::*;
+use crate::units::*;
 
 unsafe impl Send for Timer {}
 unsafe impl Sync for Timer {}

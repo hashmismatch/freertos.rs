@@ -1,6 +1,6 @@
-use base::*;
-use units::*;
-use shim::*;
+use crate::base::*;
+use crate::units::*;
+use crate::shim::*;
 
 /// A counting or binary semaphore
 pub struct Semaphore {

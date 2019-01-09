@@ -1,9 +1,9 @@
-use prelude::v1::*;
-use base::*;
-use task::*;
-use mutex::*;
-use queue::*;
-use units::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::task::*;
+use crate::mutex::*;
+use crate::queue::*;
+use crate::units::*;
 
 pub trait ComputeTaskBuilder {
     fn compute<F, R>(&self, func: F) -> Result<ComputeTask<R>, FreeRtosError>
@@ -22,12 +22,12 @@ impl ComputeTaskBuilder for TaskBuilder {
     {
 
         let (task, result, status) = {
-            let result = Arc::new(try!(Mutex::new(None)));
-            let status = Arc::new(try!(Queue::new(1)));
+            let result = Arc::new(r#try!(Mutex::new(None)));
+            let status = Arc::new(r#try!(Queue::new(1)));
 
             let task_result = result.clone();
             let task_status = status.clone();
-            let task = try!(self.start(move || {
+            let task = r#try!(self.start(move || {
                 {
                     let mut lock = task_result.lock(Duration::infinite()).unwrap();
                     let r = func();
@@ -120,7 +120,7 @@ impl<R: Debug> ComputeTask<R> {
 
     /// Consume the task and unwrap the computed return value.
     pub fn into_result<D: DurationTicks>(mut self, max_wait: D) -> Result<R, FreeRtosError> {
-        try!(self.wait_for_result(max_wait));
+        r#try!(self.wait_for_result(max_wait));
 
         if self.finished != true {
             panic!("ComputeTask should be finished!");

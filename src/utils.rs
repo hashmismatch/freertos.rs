@@ -1,6 +1,6 @@
-use prelude::v1::*;
-use shim::*;
-use base::*;
+use crate::prelude::v1::*;
+use crate::shim::*;
+use crate::base::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct TypeSizeError {

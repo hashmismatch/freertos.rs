@@ -1,6 +1,6 @@
-use prelude::v1::*;
-use base::*;
-use shim::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::shim::*;
 
 pub struct CriticalRegion;
 impl CriticalRegion {
@@ -40,7 +40,7 @@ impl<T> ExclusiveData<T> {
         })
     }
 
-    pub fn lock_from_isr(&self, _context: &mut ::isr::InterruptContext) -> Result<ExclusiveDataGuardIsr<T>, FreeRtosError> {
+    pub fn lock_from_isr(&self, _context: &mut crate::isr::InterruptContext) -> Result<ExclusiveDataGuardIsr<T>, FreeRtosError> {
         Ok(ExclusiveDataGuardIsr {
             __data: &self.data            
         })

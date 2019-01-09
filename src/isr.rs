@@ -1,5 +1,5 @@
-use base::*;
-use shim::*;
+use crate::base::*;
+use crate::shim::*;
 
 /// Keep track of whether we need to yield the execution to a different
 /// task at the end of the interrupt.
