@@ -79,7 +79,7 @@ impl Timer {
         let (success, timer_handle) = {
             let name = name.as_bytes();
             let name_len = name.len();
-            let mut timer_handle = mem::zeroed::<CVoid>();
+            let mut _timer_handle = mem::zeroed::<CVoid>();
 
             let ret = freertos_rs_timer_create(name.as_ptr(),
                                                name_len as u8,
@@ -100,7 +100,7 @@ impl Timer {
         extern "C" fn timer_callback(handle: FreeRtosTimerHandle) -> () {
             unsafe {                
                 {
-                    let mut timer = Timer {
+                    let timer = Timer {
                         handle: handle,
                         detached: true
                     };
