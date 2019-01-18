@@ -4,23 +4,23 @@
 #![feature(alloc)]
 #![feature(fnbox)]
 
+use core::panic::PanicInfo;
+
 #[lang = "eh_unwind_resume"] extern fn eh_unwind_resume() {}
 
-#[lang = "panic_fmt"]
+#[panic_handler]
 #[inline(never)]
-extern fn panic_fmt(msg: core::fmt::Arguments, file_line: &(&'static str, u32)) -> ! {
+fn panic(info: &PanicInfo) -> ! {
 	use core::fmt;
 	use core::fmt::Write;
 	use alloc::string::*;
 
 	debug_print("Panicked!");
-	
+
 	{
-		let mut s = String::new();
-		s.write_fmt(msg);
-		debug_print(&s);
+		debug_print(&format!("{:}", info));
 	}
-    
+
 	exit_test(98);
 	loop {}
 }
