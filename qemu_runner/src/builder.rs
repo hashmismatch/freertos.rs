@@ -7,33 +7,6 @@ use std::process::{Command, Stdio};
 use std::ffi::OsString;
 
 
-fn is_xargo(path: &str) -> bool {
-	let output = Command::new(path).arg("-V").output();		
-	if let Ok(output) = Command::new(path).arg("-V").output() {			
-		let s = String::from_utf8_lossy(&output.stdout);
-		if s.contains("cargo") {
-			return true;
-		}
-	}
-
-	false
-}
-
-fn find_xargo_path() -> Option<String> {	
-	let mut p: Vec<String> = vec!["xargo".to_string()];
-	if let Some(home) = env::home_dir() {
-		p.push(format!("{}/.cargo/bin/xargo", home.display()));
-	}
-
-	for path in p {
-		if is_xargo(&path) {
-			return Some(path.into());
-		}
-	}
-
-	None
-}
-
 #[derive(Clone, Debug)]
 pub struct FoundFile {
 	name: String,
@@ -79,10 +52,6 @@ pub struct CrossbuiltTests {
 
 pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 
-	// check if we can find xargo for cross building
-	let xargo_path = find_xargo_path();
-	let xargo_path = xargo_path.expect("Xargo not found! Install it with 'cargo install xargo'.");
-
 	let build_proj_root = {
 		let p = Path::new(&options.tests_project_path);
 		let mut absolute_path = ::std::env::current_dir().expect("Can't find current dir?");
@@ -91,7 +60,7 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 	};
 
 	// cross-build the tests library
-	let xargo_build = Command::new(xargo_path)
+	let cargo_build = Command::new("cargo")
 	            .current_dir(&options.tests_project_path)
 	            .arg("build")
 	            .arg("--verbose")
@@ -104,9 +73,9 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 				.stderr(Stdio::inherit())
 	            .output();
 
-	let output = xargo_build.expect("Xargo build of the tests projects failed");
+	let output = cargo_build.expect("Cargo build of the tests projects failed");
 	if !output.status.success() {
-		panic!("Xargo build failed");
+		panic!("cargo build failed");
 	}
 
 	// grab the list of tests to compile binaries for
@@ -123,23 +92,39 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 	};
 
 	let object_paths = {
-		let xargo_sysroot = {
-			let home = env::home_dir().expect("missing profile home dir");
-			format!("{}/.xargo/lib/rustlib/{}/lib/", home.to_str().unwrap(), &options.target_arch)
+		let active_toolchain: String = {
+			let output = Command::new("rustup")
+				.arg("show")
+				.arg("active-toolchain")
+				.stderr(Stdio::inherit())
+				.output()
+				.expect("Can't get a current toolchain");
+
+			let active_toolchain = String::from_utf8_lossy(&output.stdout);
+			active_toolchain.trim().to_owned()
 		};
 
-		let mut rust_sysroot_objects: Vec<String> = find_files(&xargo_sysroot, |n| {
-			n.ends_with(".o")
-		}).iter().cloned().map(|f| f.absolute_path).collect();
+		let rustup_sysroot = {
+			let home = env::home_dir().expect("missing profile home dir");
+			format!("{}/.rustup/toolchains/{}/lib/rustlib/{}/lib/",
+					home.to_str().unwrap(), active_toolchain, &options.target_arch)
+		};
+
+		let mut sysroot_rlibs: Vec<FoundFile> = find_files(&rustup_sysroot, |n| {
+			n.ends_with(".rlib")
+		}).iter().cloned().collect();
 
 		let tests_deps_dir = format!("{}/target/{}/debug/deps/", &options.tests_project_path, &options.target_arch);
+
+		for sysroot_rlib in sysroot_rlibs {
+			copy(sysroot_rlib.absolute_path, format!("{}/{}.o", tests_deps_dir, sysroot_rlib.name.trim_right_matches(".rlib")));
+		}
+
 		let mut test_objects: Vec<String> = find_files(&tests_deps_dir, |n| {
 			n.ends_with(".o")
 		}).iter().cloned().map(|f| f.absolute_path).collect();
 
-
 		let mut objects = vec![];
-		objects.append(&mut rust_sysroot_objects);
 		objects.append(&mut test_objects);
 		objects
 	};

@@ -28,12 +28,13 @@ pub fn run_tests_with_qemu(options: &RunTestOptions, binaries: &Stm32Binaries) {
 
 		qemu_cmd.args(&["--verbose", "--board", "STM32F4-Discovery", "--mcu", "STM32F407VG", "--nographic"])
 				.arg("--image").arg(&test.absolute_elf_path)
+				.stdin(Stdio::null())
 				.stdout(Stdio::inherit())
 				.stderr(Stdio::inherit());
 
-		let output = qemu_cmd.output().expect("Error running QEMU");
-		if !output.status.success() {
-			let code = output.status.code().unwrap();
+		let status = qemu_cmd.status().expect("Error running QEMU");
+		if !status.success() {
+			let code = status.code().unwrap();
 			panic!("Test '{}' failed, exit code {}.", &test.name, code);
 		}
 

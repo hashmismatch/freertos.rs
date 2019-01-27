@@ -15,8 +15,8 @@ pub fn test_mem_leaks1() -> i8 {
 		let mut end_memory_usage = 0;
 
 		// simple task spawn		
-		for i in 0..100 {			
-			Task::new().name(&format!("t_{}", i)).stack_size(128).start(move || {
+		for i in 0..100 {
+			Task::new().name(&format!("t_{}", i)).stack_size(256).start(move || {
 				let a = i;
 				let s: String = "Hello world".into();
 			}).unwrap();

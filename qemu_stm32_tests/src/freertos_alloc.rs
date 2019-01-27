@@ -17,7 +17,7 @@ pub extern fn __rust_alloc(size: usize, align: usize, err: *mut u8) -> *mut u8 {
 }
 
 #[no_mangle]
-pub extern fn __rust_oom(err: *const u8) -> ! {
+pub extern fn rust_oom(err: *const u8) -> ! {
     panic!("OOM");
 }
 

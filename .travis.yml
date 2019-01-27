@@ -16,7 +16,6 @@ before_script:
     sudo apt-get -qq install gcc-arm-embedded &&
     arm-none-eabi-gcc --version
   - qemu-system-gnuarmeclipse --version
-  - xargo --version
 
 install:
   - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION  
@@ -26,8 +25,8 @@ install:
   - export QEMU_DIR=$HOME/qemu/2.6.0-201607280535
   - if [ ! -e $QEMU_DIR/bin/qemu-system-gnuarmeclipse ]; then wget $QEMU_URL -O $QEMU_ARCHIVE && tar xzf $QEMU_ARCHIVE -C $HOME ; fi
   - export PATH=$PATH:$QEMU_DIR/bin:$HOME/.cargo/bin  
-  - which xargo; if [ ! $? -eq 0 ]; then cargo install xargo; fi
   - rustup component add rust-src
+  - rustup target add thumbv7m-none-eabi
 
 script:
   - chmod -R a+r $HOME/.cargo

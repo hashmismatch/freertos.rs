@@ -1,7 +1,7 @@
-use prelude::v1::*;
-use base::*;
-use units::*;
-use shim::*;
+use crate::prelude::v1::*;
+use crate::base::*;
+use crate::units::*;
+use crate::shim::*;
 
 pub type Mutex<T> = MutexImpl<T, MutexNormal>;
 pub type RecursiveMutex<T> = MutexImpl<T, MutexRecursive>;

@@ -1,7 +1,7 @@
-use base::*;
-use task::*;
-use shim::*;
-use units::*;
+use crate::base::*;
+use crate::task::*;
+use crate::shim::*;
+use crate::units::*;
 
 /// Delay the current task by the given duration, minus the
 /// time that was spent processing the last wakeup loop.

@@ -1,6 +1,6 @@
-use prelude::v1::*;
-use shim::*;
-use base::FreeRtosTickType;
+use crate::prelude::v1::*;
+use crate::shim::*;
+use crate::base::FreeRtosTickType;
 
 pub trait FreeRtosTimeUnits {
     #[inline]
