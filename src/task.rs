@@ -106,7 +106,7 @@ impl Task {
         }
     }
 
-    unsafe fn spawn_inner<'a>(f: Box<FnBox() + Send + 'a>,
+    unsafe fn spawn_inner<'a>(f: Box<dyn FnOnce()>,
                               name: &str,
                               stack_size: u16,
                               priority: TaskPriority)
@@ -139,7 +139,7 @@ impl Task {
         extern "C" fn thread_start(main: *mut CVoid) -> *mut CVoid {
             unsafe {
                 {
-                    let b = Box::from_raw(main as *mut Box<FnBox()>);
+                    let b = Box::from_raw(main as *mut Box<dyn FnOnce()>);
                     b();
                 }
 
@@ -152,7 +152,6 @@ impl Task {
         Ok(Task { task_handle: task_handle as usize as *const _ })
     }
 
-
     fn spawn<F>(name: &str,
                 stack_size: u16,
                 priority: TaskPriority,
@@ -163,7 +162,7 @@ impl Task {
     {
         unsafe {
             return Task::spawn_inner(Box::new(f), name, stack_size, priority);
-        }
+        }        
     }
 
 

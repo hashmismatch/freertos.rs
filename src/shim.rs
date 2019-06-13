@@ -28,11 +28,6 @@ extern {
 	pub fn freertos_rs_create_binary_semaphore() -> FreeRtosQueueHandle;
 	pub fn freertos_rs_create_counting_semaphore(max: FreeRtosUBaseType, initial: FreeRtosUBaseType) -> FreeRtosQueueHandle;
 
-	//pub fn freertos_rs_take_semaphore_isr(semaphore: FreeRtosQueueHandle, xHigherPriorityTaskWoken: FreeRtosBaseTypeMutPtr) -> FreeRtosBaseType;
-	//pub fn freertos_rs_give_semaphore_isr(semaphore: FreeRtosQueueHandle, xHigherPriorityTaskWoken: FreeRtosBaseTypeMutPtr) -> FreeRtosBaseType;
-	
-	//pub fn freertos_rs_get_semaphore_count(mutex: *const c_void) -> u32;
-
 	pub fn freertos_rs_queue_create(length: FreeRtosUBaseType, item_size: FreeRtosUBaseType) -> FreeRtosQueueHandle;
 	pub fn freertos_rs_queue_delete(queue: FreeRtosQueueHandle);
 	pub fn freertos_rs_queue_send(queue: FreeRtosQueueHandle, item: FreeRtosVoidPtr, max_wait: FreeRtosTickType) -> FreeRtosUBaseType;
@@ -94,11 +89,6 @@ pub mod freertos_rs_mocked {
 
 	pub fn freertos_rs_create_binary_semaphore() -> FreeRtosQueueHandle { 1 as _ }
 	pub fn freertos_rs_create_counting_semaphore(_max: FreeRtosUBaseType, _initial: FreeRtosUBaseType) -> FreeRtosQueueHandle { 1 as _ }
-
-	//pub fn freertos_rs_take_semaphore_isr(semaphore: FreeRtosQueueHandle, xHigherPriorityTaskWoken: FreeRtosBaseTypeMutPtr) -> FreeRtosBaseType;
-	//pub fn freertos_rs_give_semaphore_isr(semaphore: FreeRtosQueueHandle, xHigherPriorityTaskWoken: FreeRtosBaseTypeMutPtr) -> FreeRtosBaseType;
-	
-	//pub fn freertos_rs_get_semaphore_count(mutex: *const c_void) -> u32;
 
 	pub fn freertos_rs_queue_create(_length: FreeRtosUBaseType, _item_size: FreeRtosUBaseType) -> FreeRtosQueueHandle { 1 as _ }
 	pub fn freertos_rs_queue_delete(_queue: FreeRtosQueueHandle) { }

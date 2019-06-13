@@ -101,7 +101,8 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 				.expect("Can't get a current toolchain");
 
 			let active_toolchain = String::from_utf8_lossy(&output.stdout);
-			active_toolchain.trim().to_owned()
+			let mut split = active_toolchain.split_whitespace();
+			split.next().expect("active toolchain missing").trim().to_owned()
 		};
 
 		let rustup_sysroot = {

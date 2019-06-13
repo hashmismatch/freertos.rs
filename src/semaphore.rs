@@ -32,14 +32,7 @@ impl Semaphore {
             Ok(Semaphore { semaphore: s })
         }
     }
-
-    // pub fn get_count(&self) -> u32 {
-    // unsafe {
-    // freertos_rs_get_semaphore_count(self.semaphore)
-    // }
-    // }
-    //
-
+    
     /// Lock this semaphore in a RAII fashion
     pub fn lock<D: DurationTicks>(&self, max_wait: D) -> Result<SemaphoreGuard, FreeRtosError> {
         unsafe {
