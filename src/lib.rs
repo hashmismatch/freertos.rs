@@ -9,8 +9,7 @@
 //! your firmware's sources directory and modify it to include the appropriate headers for
 //! target your system.
 //!
-//! For a complete example, check the enclosed GCC ARM/Rust/QEMU based unit tests. The Rust
-//! cargo crate [xargo](https://crates.io/crates/xargo) is used for cross-compilation. The project
+//! For a complete example, check the enclosed GCC ARM/Rust/QEMU based unit tests. The project
 //! ``qemu_runner`` cross-compiles this library, compiles the main firmware using GCC ARM and links
 //! in the appropriate entry points for unit tests. [GNU ARM Eclipse QEMU](http://gnuarmeclipse.github.io/qemu/)
 //! is used to run the test binaries.
@@ -53,12 +52,8 @@
 
 #![no_std]
 
-#![feature(alloc)]
-#![feature(fnbox)]
-
 #[macro_use]
 extern crate alloc;
-
 
 mod prelude;
 mod shim;

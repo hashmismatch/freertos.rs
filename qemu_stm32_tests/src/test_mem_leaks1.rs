@@ -17,21 +17,19 @@ pub fn test_mem_leaks1() -> i8 {
 		// simple task spawn		
 		for i in 0..100 {
 			Task::new().name(&format!("t_{}", i)).stack_size(256).start(move || {
-				let a = i;
-				let s: String = "Hello world".into();
+				let s = format!("Hello world {}", i);
 			}).unwrap();
 
-			CurrentTask::delay(Duration::ms(1));
+			CurrentTask::delay(Duration::ms(2));
 		}
 		
-
 		// simple mutexes
 		for i in 0..100 {
 			let m = Mutex::new(0).unwrap();
 			let mut v = m.lock(Duration::ms(50)).unwrap();
 			*v += 1;
 		}
-
+		
 		// recursive mutexes
 		for i in 0..100 {
 			let m = RecursiveMutex::new(0).unwrap();
@@ -75,7 +73,7 @@ pub fn test_mem_leaks1() -> i8 {
 			q.send(10, Duration::ms(5)).unwrap();
 			q.receive(Duration::ms(100)).unwrap();
 		}
-
+		
 		end_memory_usage = heap_allocated_memory();
 		assert_eq!(start_memory_usage, end_memory_usage, "Mem usage #1");
 

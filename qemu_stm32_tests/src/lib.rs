@@ -1,12 +1,6 @@
 #![no_std]
-#![feature(lang_items)]
-
-#![feature(alloc)]
-#![feature(fnbox)]
 
 use core::panic::PanicInfo;
-
-#[lang = "eh_unwind_resume"] extern fn eh_unwind_resume() {}
 
 #[panic_handler]
 #[inline(never)]
@@ -88,7 +82,4 @@ pub mod test_sample1;
 pub mod test_stats;
 pub mod test_processor;
 pub mod test_timers;
-
-
-
 

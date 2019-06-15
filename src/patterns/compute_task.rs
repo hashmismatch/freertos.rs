@@ -83,6 +83,7 @@ impl ComputeTaskBuilder for TaskBuilder {
 /// let result = task.into_result(Duration::ms(1000)).unwrap();
 /// # println!("{}", result);
 /// ```
+
 pub struct ComputeTask<R> {
     task: Task,
     result: Arc<Mutex<Option<R>>>,

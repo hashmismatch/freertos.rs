@@ -11,5 +11,5 @@ crate-type = ["lib"]
 freertos_rs = { path = "../" }
 
 [dependencies.lazy_static]
-version = "0.2.1"
-features = ["nightly", "spin_no_std"]
+version = "1.3.0"
+features = ["spin_no_std"]

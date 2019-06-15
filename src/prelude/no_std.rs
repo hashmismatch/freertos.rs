@@ -13,7 +13,7 @@ pub use core::cell::UnsafeCell;
 pub use core::ptr;
 
 pub use alloc::rc::Rc;
-pub use alloc::boxed::{Box, FnBox};
+pub use alloc::boxed::Box;
 pub use alloc::sync::{Arc, Weak};
 pub use alloc::vec::Vec;
 pub use alloc::string::*;
