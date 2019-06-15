@@ -1,6 +1,6 @@
 [package]
 name = "freertos_rs"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Rudi Benkovic <rudi.benkovic@gmail.com>"]
 license = "BSD-2-Clause"
 repository = "https://github.com/hashmismatch/freertos.rs"
