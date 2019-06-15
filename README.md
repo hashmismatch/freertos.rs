@@ -1,6 +1,6 @@
 # freertos.rs
 
-A Rust wrapper for [FreeRTOS](http://www.freertos.org/). Nightly Rust is required.
+A Rust wrapper for [FreeRTOS](http://www.freertos.org/). Beta Rust is required - soon to be stable.
 
 The main entry point for your embedded executable should be provided by your platform's preffered compiler toolchain. For example, for STM microcontrollers, a project generated using STM32CubeMX and compiled using GCC could be used as a starting point. Additional shims between C and Rust provide access to drivers, hardware and FreeRTOS.
 

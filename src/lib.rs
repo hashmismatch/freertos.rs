@@ -1,6 +1,6 @@
 //! # FreeRTOS for Rust
 //!
-//! Rust interface for the FreeRTOS embedded operating system. Requires nightly Rust.
+//! Rust interface for the FreeRTOS embedded operating system. Requires beta Rust.
 //! It is assumed that dynamic memory allocation is provided on the target system.
 //!
 //! This library interfaces with FreeRTOS using a C shim library which provides function
