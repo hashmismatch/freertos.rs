@@ -121,9 +121,21 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 			copy(sysroot_rlib.absolute_path, format!("{}/{}.o", tests_deps_dir, sysroot_rlib.name.trim_right_matches(".rlib")));
 		}
 
-		let mut test_objects: Vec<String> = find_files(&tests_deps_dir, |n| {
+		let mut test_objects: Vec<_> = find_files(&tests_deps_dir, |n| {
 			n.ends_with(".o")
-		}).iter().cloned().map(|f| f.absolute_path).collect();
+		}).iter().cloned().collect();
+		
+		test_objects.sort_by_key(|f| {
+			if f.name.contains("freertos_rs") { 0 }
+			else if f.name.contains("lazy_static") { 1 }
+			else if f.name.contains("liballoc") { 2 }
+			else if f.name.contains("libcompiler_builtins") { 3 }
+			else if f.name.contains("libcore") { 4 }
+			else if f.name.contains("librustc_std_workspace_core") { 5 }
+			else { 6 }
+		});
+
+		let mut test_objects: Vec<_> = test_objects.into_iter().map(|f| f.absolute_path).collect();
 
 		let mut objects = vec![];
 		objects.append(&mut test_objects);
