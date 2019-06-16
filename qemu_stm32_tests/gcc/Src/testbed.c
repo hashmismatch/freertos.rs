@@ -14,7 +14,7 @@ void testbed_println(uint8_t* line, uint16_t line_len) {
 	if (kernel_started == 1) {
 		taskENTER_CRITICAL();
 	}
-	trace_print(line, line_len);
+	trace_print((char*) line, line_len);
 	trace_print("\n", 1);
 	if (kernel_started == 1) {
 		taskEXIT_CRITICAL();
@@ -37,9 +37,8 @@ void testbed_init_timer4_50ms_isr() {
     	Error_Handler();
   	}  
 
-	osThreadId handle;
 	osThreadDef(timerTask, timer4_emulator, osPriorityNormal, 0, 128);
-  	handle = osThreadCreate(osThread(timerTask), NULL);
+  	osThreadCreate(osThread(timerTask), NULL);
 }
 
 

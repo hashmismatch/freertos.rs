@@ -6,6 +6,32 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::ffi::OsString;
 
+fn is_cargo(path: &str) -> bool {
+	let output = Command::new(path).arg("-V").output();		
+	if let Ok(output) = Command::new(path).arg("-V").output() {			
+		let s = String::from_utf8_lossy(&output.stdout);
+		if s.contains("cargo") {
+			return true;
+		}
+	}
+
+	false
+}
+
+fn find_cargo_path() -> Option<String> {	
+	let mut p: Vec<String> = vec!["cargo".to_string()];
+	if let Some(home) = env::home_dir() {
+		p.push(format!("{}/.cargo/bin/cargo", home.display()));
+	}
+
+	for path in p {
+		if is_cargo(&path) {
+			return Some(path.into());
+		}
+	}
+
+	None
+}
 
 #[derive(Clone, Debug)]
 pub struct FoundFile {
@@ -47,10 +73,15 @@ pub struct CrossbuildOptions {
 #[derive(Debug)]
 pub struct CrossbuiltTests {
 	pub object_paths: Vec<String>,
-	pub tests: Vec<String>
+	pub tests: Vec<String>,
+	pub library_path: String
 }
 
 pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
+
+	// check if we can find cargo for cross building
+	let cargo_path = find_cargo_path();
+	let cargo_path = cargo_path.expect("Cargo not found! Install Rust's package manager.");
 
 	let build_proj_root = {
 		let p = Path::new(&options.tests_project_path);
@@ -59,92 +90,59 @@ pub fn crossbuild_rust_tests(options: &CrossbuildOptions) -> CrossbuiltTests {
 		p.canonicalize().expect("Error canonicalizing")
 	};
 
-	// cross-build the tests library
-	let cargo_build = Command::new("cargo")
-	            .current_dir(&options.tests_project_path)
-	            .arg("build")
-	            .arg("--verbose")
-	            .arg("--target")
-	            .arg(&options.target_arch)
-				.env("CARGO_INCREMENTAL", "")
-	            .env("RUSTFLAGS", "--emit=obj")
-				.env("RUST_TARGET_PATH", &build_proj_root.to_str().expect("Missing path to proj root for target path?"))
-	            .stdout(Stdio::inherit())
-				.stderr(Stdio::inherit())
-	            .output();
-
-	let output = cargo_build.expect("Cargo build of the tests projects failed");
-	if !output.status.success() {
-		panic!("cargo build failed");
-	}
-
 	// grab the list of tests to compile binaries for
-	let tests = {
-		// slightly hackish way that requires each test entrypoint to be in its
-		// own source file with a matching name
-
-		let dir = format!("{}/src/", &options.tests_project_path);
+	let tests: Vec<_> = {
+		let dir = format!("{}/examples/", &options.tests_project_path);
 		let tests = find_files(&dir, |n| {
 			n.starts_with("test_") && n.ends_with(".rs")
 		}).iter().cloned().map(|f| f.name).map(|n| { n.replace(".rs", "") }).collect();
 
 		tests
 	};
+	let mut built_tests = vec![];
 
-	let object_paths = {
-		let active_toolchain: String = {
-			let output = Command::new("rustup")
-				.arg("show")
-				.arg("active-toolchain")
-				.stderr(Stdio::inherit())
-				.output()
-				.expect("Can't get a current toolchain");
+	for test in &tests {
+		// cross-build the tests library
+		let cargo_build = Command::new(&cargo_path)
+					.current_dir(&options.tests_project_path)
+					.arg("build")
 
-			let active_toolchain = String::from_utf8_lossy(&output.stdout);
-			let mut split = active_toolchain.split_whitespace();
-			split.next().expect("active toolchain missing").trim().to_owned()
-		};
+					.arg("--example")
+					.arg(test)
+					
+					.arg("--verbose")
+					
+					.arg("--target")
+					.arg(&options.target_arch)
+					
+					//.env("RUSTFLAGS", "-C linker=arm-none-eabi-gcc -Z linker-flavor=gcc") 
 
-		let rustup_sysroot = {
-			let home = env::home_dir().expect("missing profile home dir");
-			format!("{}/.rustup/toolchains/{}/lib/rustlib/{}/lib/",
-					home.to_str().unwrap(), active_toolchain, &options.target_arch)
-		};
+					.env("CARGO_INCREMENTAL", "0")
+					//.env("RUSTFLAGS", "--emit=obj")
+					//.env("RUST_TARGET_PATH", &build_proj_root.to_str().expect("Missing path to proj root for target path?"))
+					
+					.stdout(Stdio::inherit())
+					.stderr(Stdio::inherit())
+					.output();
 
-		let mut sysroot_rlibs: Vec<FoundFile> = find_files(&rustup_sysroot, |n| {
-			n.ends_with(".rlib")
-		}).iter().cloned().collect();
-
-		let tests_deps_dir = format!("{}/target/{}/debug/deps/", &options.tests_project_path, &options.target_arch);
-
-		for sysroot_rlib in sysroot_rlibs {
-			copy(sysroot_rlib.absolute_path, format!("{}/{}.o", tests_deps_dir, sysroot_rlib.name.trim_right_matches(".rlib")));
+		let output = cargo_build.expect("Cargo build of the tests projects failed");
+		if !output.status.success() {
+			panic!("Cargo build failed");
 		}
 
-		let mut test_objects: Vec<_> = find_files(&tests_deps_dir, |n| {
-			n.ends_with(".o")
-		}).iter().cloned().collect();
-		
-		test_objects.sort_by_key(|f| {
-			if f.name.contains("freertos_rs") { 0 }
-			else if f.name.contains("lazy_static") { 1 }
-			else if f.name.contains("liballoc") { 2 }
-			else if f.name.contains("libcompiler_builtins") { 3 }
-			else if f.name.contains("libcore") { 4 }
-			else if f.name.contains("librustc_std_workspace_core") { 5 }
-			else { 6 }
-		});
+		built_tests.push(test.clone());
+	}
 
-		let mut test_objects: Vec<_> = test_objects.into_iter().map(|f| f.absolute_path).collect();
-
-		let mut objects = vec![];
-		objects.append(&mut test_objects);
-		objects
+	let library_path = {
+		let p = format!("{}/target/{}/debug/examples/", &options.tests_project_path, &options.target_arch);
+		let p = Path::new(&p);
+		p.canonicalize().unwrap().to_str().unwrap().into()
 	};
-
+	
 	CrossbuiltTests {
-		object_paths: object_paths,
-		tests: tests
+		object_paths: vec![],
+		tests: built_tests,
+		library_path: library_path
 	}
 }
 
@@ -168,19 +166,28 @@ pub fn build_test_binaries(options: &CrossbuildOptions, tests: &CrossbuiltTests)
 	for test in &tests.tests {
 		let mut test_renames = "".to_string();
 
+		/*
 		if test.contains("isr_timer4") {
 			test_renames.push_str(&format!("testbed_timer4_isr = {}_timer4_isr;", test));
 		}
+		*/
+
+
+		let mut test_deps = vec![
+			format!("{}/lib{}.a", &tests.library_path, &test)
+		];
 
 		let test_binary_build = Command::new("make")
 				.current_dir(&gcc_proj_dir)
-				.env("TEST_ENTRY", test.clone())
+				.env("TEST_NAME", test.clone())
+				.env("TEST_LIBRARY_PATH", format!("-L {}", &tests.library_path))
+				.env("TEST_LIBRARY_PRE", format!("-l:lib{}.a", &test))
 				.env("TEST_OBJECTS", &test_objects)
+				.env("TEST_DEPS", test_deps.join(" "))
 				.env("TEST_RENAMES", test_renames)
 				.stdout(Stdio::inherit())
 				.stderr(Stdio::inherit())
 				.output();
-
 		let output = test_binary_build.unwrap();
 		if !output.status.success() {
 			panic!(format!("GCC ARM build for '{}' failed", test));

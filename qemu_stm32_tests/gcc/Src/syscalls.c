@@ -10,6 +10,7 @@
 #include <sys/times.h>
 
 #include "stm32f4xx_hal.h"
+#include "semihosting.h"
 
 /* Variables */
 #undef errno
@@ -20,8 +21,7 @@ extern int __io_getchar(void) __attribute__((weak));
 extern void usart2_send_byte(uint8_t byte);
 
 static int __io_putchar(int ch) {
-	//usart2_send_byte(ch);
-	trace_write(ch);
+	return trace_write(ch);
 }
 
 /*

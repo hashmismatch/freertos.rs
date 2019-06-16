@@ -5,7 +5,7 @@
 ######################################
 # target
 ######################################
-TARGET = stm32_$(TEST_ENTRY)
+TARGET = stm32_$(TEST_NAME)
 
 ######################################
 # building variables
@@ -108,9 +108,9 @@ CFLAGS += -std=c99 -MD -MP -MF .dep/$(@F).d
 # link script
 LDSCRIPT = STM32F407VGTx_FLASH.ld
 # libraries
-LIBS = -lc -lm -lnosys
-LIBDIR =
-LDFLAGS = -mthumb -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfloat-abi=soft -specs=nano.specs -T$(BUILD_DIR)/$(TARGET).ld -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LIBS = $(TEST_LIBRARY_PRE) -lc -lm -lnosys
+LIBDIR = $(TEST_LIBRARY_PATH)
+LDFLAGS = -mthumb -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfloat-abi=soft -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
@@ -132,11 +132,7 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).ld: Makefile | $(BUILD_DIR)
-	echo "testbed_main = $(TEST_ENTRY);" > $(BUILD_DIR)/$(TARGET).ld
-	echo "$(TEST_RENAMES)" >> $(BUILD_DIR)/$(TARGET).ld
-
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(BUILD_DIR)/$(TARGET).ld Makefile
+$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(TEST_DEPS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
 

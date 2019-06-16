@@ -3,7 +3,7 @@ dist: trusty
 
 language: rust
 rust:
-  - beta
+  - nightly
 
 cache:
   directories:
@@ -21,8 +21,8 @@ install:
   - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION  
   - source ~/.cargo/env
   - export QEMU_ARCHIVE=$HOME/qemueclipse.tgz
-  - export QEMU_URL=https://github.com/gnu-mcu-eclipse/qemu/releases/download/v2.8.0-6-20190517/gnu-mcu-eclipse-qemu-2.8.0-6-20190517-1329-centos64.tgz
-  - export QEMU_DIR=$HOME/gnu-mcu-eclipse/qemu/2.8.0-6-20190517-1329
+  - export QEMU_URL=https://github.com/gnu-mcu-eclipse/qemu/releases/download/gae-2.7.0-20161128/gnuarmeclipse-qemu-debian64-2.7.0-201611282115-dev.tgz
+  - export QEMU_DIR=$HOME/qemu/2.7.0-201611282115-dev
   - if [ ! -e $QEMU_DIR/bin/qemu-system-gnuarmeclipse ]; then wget $QEMU_URL -O $QEMU_ARCHIVE && tar xzf $QEMU_ARCHIVE -C $HOME ; fi
   - export PATH=$PATH:$QEMU_DIR/bin:$HOME/.cargo/bin  
   - rustup target add thumbv7m-none-eabi
