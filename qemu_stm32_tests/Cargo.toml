@@ -5,7 +5,6 @@ authors = ["Rudi Benkovic <rudi.benkovic@gmail.com>"]
 
 [lib]
 name = "qemu_stm32_tests"
-crate-type = ["lib"]
 
 [dependencies]
 freertos_rs = { path = "../" }
@@ -13,3 +12,43 @@ freertos_rs = { path = "../" }
 [dependencies.lazy_static]
 version = "1.3.0"
 features = ["spin_no_std"]
+
+[[example]]
+name = "test_basics"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_delay"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_mutex"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_mem_leaks1"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_timers"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_stats"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_processor"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_sample1"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_isr_timer4_notify"
+crate-type = ["staticlib"]
+
+[[example]]
+name = "test_isr_timer4_queue"
+crate-type = ["staticlib"]

@@ -1,6 +1,12 @@
 #![no_std]
 
+#![feature(alloc_error_handler)]
+
+#[global_allocator]
+static GLOBAL: freertos_alloc::FreeRtosAllocator = freertos_alloc::FreeRtosAllocator;
+
 use core::panic::PanicInfo;
+use testbed::Testbed;
 
 #[panic_handler]
 #[inline(never)]
@@ -9,77 +15,49 @@ fn panic(info: &PanicInfo) -> ! {
 	use core::fmt::Write;
 	use alloc::string::*;
 
-	debug_print("Panicked!");
+	testbed::QemuTestbed::debug_print("Panicked!");
 
 	{
-		debug_print(&format!("{:}", info));
+		testbed::QemuTestbed::debug_print(&format!("{:}", info));
 	}
 
-	exit_test(98);
+	testbed::QemuTestbed::exit_test(98);
 	loop {}
 }
 
 
 #[macro_use]
-extern crate alloc;
+#[macro_export]
+pub extern crate alloc;
 
-extern crate freertos_rs;
+pub extern crate freertos_rs;
 
 #[macro_use]
-extern crate lazy_static;
+#[macro_export]
+pub extern crate lazy_static;
 
-extern {
-	fn testbed_println(line: *const u8, line_len: u16);
-	fn testbed_start_kernel();
-	fn testbed_return(return_code: i8);
-	fn testbed_allocated_memory() -> u32;
-	fn testbed_init_timer4_50ms_isr();
-}
-
-pub fn debug_print(s: &str) {
-	let s = s.as_bytes();	
-	unsafe {
-		testbed_println(s.as_ptr(), s.len() as u16);
-	}
-}
-
-pub fn start_kernel() {
-	unsafe {
-		testbed_start_kernel();
-	}
-}
-
-pub fn exit_test(return_code: i8) {
-	unsafe {
-		testbed_return(return_code);
-	}
-}
-
-pub fn heap_allocated_memory() -> u32 {
-	unsafe {
-		testbed_allocated_memory()
-	}
-}
-
-pub fn start_timer4_50ms() {
-	unsafe {
-		testbed_init_timer4_50ms_isr();
-	}
-}
-
-
+pub mod testbed;
 pub mod freertos_alloc;
-mod prelude;
-mod utils;
+pub mod prelude;
+pub mod utils;
 
-pub mod test_basics;
-pub mod test_delay;
-pub mod test_mutex;
-pub mod test_mem_leaks1;
-pub mod test_isr_timer4_queue;
-pub mod test_isr_timer4_notify;
-pub mod test_sample1;
-pub mod test_stats;
-pub mod test_processor;
-pub mod test_timers;
 
+pub trait Test {
+	fn run<T: testbed::Testbed>(tb: &T);
+}
+
+pub fn run_test<T: Test>() {
+	let tb = testbed::QemuTestbed;
+	T::run(&tb);
+}
+
+#[macro_export]
+macro_rules! freertos_rs_test {
+	($test: ty) => {
+		#[no_mangle]
+		pub extern "C" fn testbed_main() -> i8 {
+			run_test::<$test>();
+			0
+		}
+	};
+}

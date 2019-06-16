@@ -45,8 +45,6 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-static uint8_t enable_tim4_itr = 0;
-
 extern void testbed_timer4_isr() __attribute__((weak));
 
 void SysTick_Handler(void);
