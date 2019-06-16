@@ -30,6 +30,10 @@ name = "test_mem_leaks1"
 crate-type = ["staticlib"]
 
 [[example]]
+name = "test_mem_leaks2"
+crate-type = ["staticlib"]
+
+[[example]]
 name = "test_timers"
 crate-type = ["staticlib"]
 
