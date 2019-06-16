@@ -18,7 +18,7 @@ First, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-freertos_rs = "0.2"
+freertos_rs = "0.3"
 ```
 
 Next, add this to your project:
