@@ -11,7 +11,7 @@ freertos_rs_test!(TestMemLeaks2);
 pub struct TestMemLeaks2;
 impl Test for TestMemLeaks2 {
 	fn run<T: Testbed>(tb: &T) {
-		let main_task = Task::new().name("main").stack_size(256).start(|| {
+		let main_task = Task::new().name("main").start(|| {
 			let start_memory_usage = T::heap_allocated_memory();
 			let mut end_memory_usage = 0;
 
@@ -20,7 +20,7 @@ impl Test for TestMemLeaks2 {
             let here = "hello";
             T::debug_print(&here);
             
-            let task = Task::new().name("i1").stack_size(512).start(move || {
+            let task = Task::new().name("i1").start(move || {
                 T::debug_print("i1.1");
                 T::debug_print(&here);
                 T::debug_print("i1.2");
