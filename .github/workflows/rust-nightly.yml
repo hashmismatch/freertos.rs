@@ -36,9 +36,9 @@ jobs:
     - name: Download QEMU
       uses: wei/wget@v1
       with:
-        args: -O $HOME/qemueclipse.tgz https://github.com/gnu-mcu-eclipse/qemu/releases/download/gae-2.7.0-20161128/gnuarmeclipse-qemu-debian64-2.7.0-201611282115-dev.tgz
+        args: -O ${{ github.workspace }}/qemueclipse.tgz https://github.com/gnu-mcu-eclipse/qemu/releases/download/gae-2.7.0-20161128/gnuarmeclipse-qemu-debian64-2.7.0-201611282115-dev.tgz
 
     - name: Install QEMU and run unit tests
-      run: tar xzf $HOME/qemueclipse.tgz -C $HOME &&
-        export PATH=$PATH:~/qemu/2.7.0-201611282115-dev/bin:~/.cargo/bin &&
+      run: tar xzf ${{ github.workspace }}/qemueclipse.tgz -C ${{ github.workspace }} &&
+        export PATH=$PATH:${{ github.workspace }}/qemu/2.7.0-201611282115-dev/bin &&
         cd qemu_runner && cargo test --verbose
