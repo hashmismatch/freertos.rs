@@ -21,25 +21,25 @@ jobs:
         toolchain: nightly
         override: true
         target: thumbv7m-none-eabi
-    
+                
+    - name: Build
+      run: cargo build --verbose
+    - name: Run unit tests
+      run: cargo test --verbose
+  
     - name: Install GCC for ARM
       run: sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa &&
            sudo apt-get -qq update &&
            sudo apt-get -qq install gcc-arm-embedded &&
            arm-none-eabi-gcc --version
 
-    # - name: Install QEMU
-    #   env:
-    #     QEMU_URL: https://github.com/gnu-mcu-eclipse/qemu/releases/download/gae-2.7.0-20161128/gnuarmeclipse-qemu-debian64-2.7.0-201611282115-dev.tgz
-        
-    #   run: wget $QEMU_URL -O $QEMU_ARCHIVE && tar xzf $QEMU_ARCHIVE -C $HOME
-    
-    # - name: Check QEMU version
-    #   run: qemu-system-gnuarmeclipse --version
-    
-    
-    - name: Build
-      run: cargo build --verbose
-    - name: Run unit tests
-      run: cargo test --verbose
-  
+     - name: Install QEMU and run unit tests
+       env:
+         QEMU_URL: https://github.com/gnu-mcu-eclipse/qemu/releases/download/gae-2.7.0-20161128/gnuarmeclipse-qemu-debian64-2.7.0-201611282115-dev.tgz
+         QEMU_ARCHIVE: ~/qemueclipse.tgz
+         QEMU_DIR: ~/qemu/2.7.0-201611282115-dev
+       run: |
+        export QEMU_DIR=$HOME/qemu/2.7.0-201611282115-dev
+        wget $QEMU_URL -O $QEMU_ARCHIVE && tar xzf $QEMU_ARCHIVE -C $HOME
+        export PATH=$PATH:$QEMU_DIR/bin:~/.cargo/bin
+        cd qemu_runner && cargo test --verbose
