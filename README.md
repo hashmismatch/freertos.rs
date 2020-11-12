@@ -6,7 +6,7 @@ The main entry point for your embedded executable should be provided by your pla
 
 This library uses a C shim to communicate with FreeRTOS's API. Dynamic memory allocation is required at the moment.
 
-[![Build Status](https://travis-ci.org/hashmismatch/freertos.rs.svg?branch=master)](https://travis-ci.org/hashmismatch/freertos.rs)
+![RustNightly](https://github.com/hashmismatch/freertos.rs/workflows/RustNightly/badge.svg)
 
 [![Documentation](https://docs.rs/freertos_rs/badge.svg)](https://docs.rs/freertos_rs)
 
