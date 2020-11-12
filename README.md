@@ -6,7 +6,7 @@ The main entry point for your embedded executable should be provided by your pla
 
 This library uses a C shim to communicate with FreeRTOS's API. Dynamic memory allocation is required at the moment.
 
-![.github/workflows/rust-nightly.yml](https://github.com/hashmismatch/freertos.rs/workflows/.github/workflows/rust-nightly.yml/badge.svg)
+![RustNightly](https://github.com/hashmismatch/freertos.rs/workflows/RustNightly/badge.svg)
 
 [![Documentation](https://docs.rs/freertos_rs/badge.svg)](https://docs.rs/freertos_rs)
 
